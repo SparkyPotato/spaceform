@@ -1,13 +1,10 @@
 //! Implementation using scalar math only.
 
 use core::f32;
-use std::{
-	fmt::{Debug, Display, Formatter, Result},
-	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
-};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Copy, Clone)]
-/// A four-dimensional vector.
+/// A four-dimensional row vector.
 pub struct Vector
 {
 	data: [f32; 4],
@@ -17,6 +14,7 @@ impl Add for Vector
 {
 	type Output = Vector;
 
+	#[inline(always)]
 	fn add(self, rhs: Self) -> Self
 	{
 		Self {
@@ -27,19 +25,13 @@ impl Add for Vector
 
 impl AddAssign for Vector
 {
+	#[inline(always)]
 	fn add_assign(&mut self, rhs: Self) { *self = *self + rhs; }
-}
-
-impl Debug for Vector
-{
-	fn fmt(&self, f: &mut Formatter<'_>) -> Result
-	{
-		write!(f, "[{}, {}, {}, {}]", self.x(), self.y(), self.z(), self.w())
-	}
 }
 
 impl Default for Vector
 {
+	#[inline(always)]
 	fn default() -> Self
 	{
 		Self {
@@ -48,18 +40,11 @@ impl Default for Vector
 	}
 }
 
-impl Display for Vector
-{
-	fn fmt(&self, f: &mut Formatter<'_>) -> Result
-	{
-		write!(f, "[{}, {}, {}, {}]", self.x(), self.y(), self.z(), self.w())
-	}
-}
-
 impl Div for Vector
 {
 	type Output = Vector;
 
+	#[inline(always)]
 	fn div(self, rhs: Self) -> Self
 	{
 		Self {
@@ -70,6 +55,7 @@ impl Div for Vector
 
 impl DivAssign for Vector
 {
+	#[inline(always)]
 	fn div_assign(&mut self, rhs: Self) { *self = *self / rhs; }
 }
 
@@ -77,6 +63,7 @@ impl Div<f32> for Vector
 {
 	type Output = Vector;
 
+	#[inline(always)]
 	fn div(self, rhs: f32) -> Self
 	{
 		Self {
@@ -87,6 +74,7 @@ impl Div<f32> for Vector
 
 impl DivAssign<f32> for Vector
 {
+	#[inline(always)]
 	fn div_assign(&mut self, rhs: f32) { *self = *self / rhs; }
 }
 
@@ -94,6 +82,7 @@ impl Mul for Vector
 {
 	type Output = Vector;
 
+	#[inline(always)]
 	fn mul(self, rhs: Self) -> Self
 	{
 		Self {
@@ -104,6 +93,7 @@ impl Mul for Vector
 
 impl MulAssign for Vector
 {
+	#[inline(always)]
 	fn mul_assign(&mut self, rhs: Self) { *self = *self * rhs; }
 }
 
@@ -111,6 +101,7 @@ impl Mul<f32> for Vector
 {
 	type Output = Vector;
 
+	#[inline(always)]
 	fn mul(self, rhs: f32) -> Self
 	{
 		Self {
@@ -121,6 +112,7 @@ impl Mul<f32> for Vector
 
 impl MulAssign<f32> for Vector
 {
+	#[inline(always)]
 	fn mul_assign(&mut self, rhs: f32) { *self = *self * rhs; }
 }
 
@@ -128,11 +120,13 @@ impl Neg for Vector
 {
 	type Output = Self;
 
+	#[inline(always)]
 	fn neg(self) -> Self { Self::default() - self }
 }
 
 impl PartialEq for Vector
 {
+	#[inline(always)]
 	fn eq(&self, other: &Vector) -> bool { self.data == other.data }
 }
 
@@ -140,6 +134,7 @@ impl Sub for Vector
 {
 	type Output = Vector;
 
+	#[inline(always)]
 	fn sub(self, rhs: Self) -> Self
 	{
 		Self {
@@ -150,38 +145,49 @@ impl Sub for Vector
 
 impl SubAssign for Vector
 {
+	#[inline(always)]
 	fn sub_assign(&mut self, rhs: Self) { *self = *self - rhs; }
 }
 
 impl Vector
 {
+	#[inline(always)]
 	/// Create a [`Vector`] from x, y, z, and w values.
 	pub fn new(x: f32, y: f32, z: f32, w: f32) -> Self { Self { data: [x, y, z, w] } }
 
+	#[inline(always)]
 	/// Get the x value of the [`Vector`].
 	pub fn x(self) -> f32 { self.data[0] }
 
+	#[inline(always)]
 	/// Get the y value of the [`Vector`].
 	pub fn y(self) -> f32 { self.data[1] }
 
+	#[inline(always)]
 	/// Get the z value of the [`Vector`].
 	pub fn z(self) -> f32 { self.data[2] }
 
+	#[inline(always)]
 	/// Get the w value
 	pub fn w(self) -> f32 { self.data[3] }
 
+	#[inline(always)]
 	/// Set the x value of the [`Vector`].
 	pub fn set_x(&mut self, val: f32) { self.data[0] = val }
 
+	#[inline(always)]
 	/// Set the y value of the [`Vector`].
 	pub fn set_y(&mut self, val: f32) { self.data[1] = val }
 
+	#[inline(always)]
 	/// Set the z value of the [`Vector`].
 	pub fn set_z(&mut self, val: f32) { self.data[2] = val }
 
+	#[inline(always)]
 	/// Set the w value of the [`Vector`].
 	pub fn set_w(&mut self, val: f32) { self.data[3] = val }
 
+	#[inline(always)]
 	/// Shuffles the components of a [`Vector`].
 	pub fn shuffle<const X: u32, const Y: u32, const Z: u32, const W: u32>(self) -> Self
 	{
@@ -195,6 +201,12 @@ impl Vector
 		}
 	}
 
+	#[inline(always)]
+	/// Get an indexed value from the [`Vector`]. This is slow, don't use it unless you have to.
+	/// Panics if idx is not in the range [0, 3].
+	pub fn get(&self, idx: u8) -> f32 { self.data[idx as usize] }
+
+	#[inline(always)]
 	/// Get a [`Vector`] containing the absolute values of x, y, z, and w.
 	pub fn abs(self) -> Self
 	{
@@ -203,44 +215,16 @@ impl Vector
 		}
 	}
 
+	#[inline(always)]
 	/// Get the three-dimensional horizontal-sum of a [`Vector`].
 	pub fn hsum3(self) -> f32 { self.data[0] + self.data[1] + self.data[2] }
 
+	#[inline(always)]
 	/// Get the four-dimensional horizontal-sum of a [`Vector`].
 	pub fn hsum4(self) -> f32 { self.data[0] + self.data[1] + self.data[2] + self.data[3] }
-
-	/// Get the square of the four-dimensional length of the [`Vector`].
-	pub fn length3_square(self) -> f32 { dot3(self, self) }
-
-	/// Get the square of the four-dimensional length of the [`Vector`].
-	pub fn length4_square(self) -> f32 { dot4(self, self) }
-
-	/// Get the four-dimensional length of the [`Vector`].
-	pub fn length3(self) -> f32 { self.length3_square().sqrt() }
-
-	/// Get the four-dimensional length of the [`Vector`].
-	pub fn length4(self) -> f32 { self.length4_square().sqrt() }
-
-	/// Get the normalized four-dimensional length of the [`Vector`].
-	pub fn normalize3(self) -> Vector { self / self.length3() }
-
-	/// Get the normalized four-dimensional length of the [`Vector`].
-	pub fn normalize4(self) -> Vector { self / self.length4() }
 }
 
-/// Get the three-dimensional dot product of two [`Vector`]s.
-pub fn dot3(lhs: Vector, rhs: Vector) -> f32 { (lhs * rhs).hsum3() }
-
-/// Get the four-dimensional dot product of two [`Vector`]s.
-pub fn dot4(lhs: Vector, rhs: Vector) -> f32 { (lhs * rhs).hsum4() }
-
-/// Get the three-dimensional cross product of two [`Vector`]s.
-pub fn cross(lhs: Vector, rhs: Vector) -> Vector
-{
-	let temp = lhs.shuffle::<1, 2, 0, 3>();
-	temp * rhs.shuffle::<2, 0, 1, 3>() - (temp * rhs).shuffle::<1, 2, 0, 3>()
-}
-
+#[inline(always)]
 /// Get the component-wise minimums.
 pub fn min(lhs: Vector, rhs: Vector) -> Vector
 {
@@ -249,6 +233,7 @@ pub fn min(lhs: Vector, rhs: Vector) -> Vector
 	}
 }
 
+#[inline(always)]
 /// Get the component-wise maximums.
 pub fn max(lhs: Vector, rhs: Vector) -> Vector
 {

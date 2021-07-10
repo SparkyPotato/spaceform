@@ -4,14 +4,11 @@
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
-use core::f32;
-use std::{
-	fmt::{Debug, Display, Formatter, Result},
-	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
-};
+use core::{f32, panic};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Copy, Clone)]
-/// A four-dimensional vector.
+/// A four-dimensional row vector.
 pub struct Vector
 {
 	data: __m128,
@@ -36,15 +33,6 @@ impl AddAssign for Vector
 	fn add_assign(&mut self, rhs: Self) { *self = *self + rhs; }
 }
 
-impl Debug for Vector
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter<'_>) -> Result
-	{
-		write!(f, "[{}, {}, {}, {}]", self.x(), self.y(), self.z(), self.w())
-	}
-}
-
 impl Default for Vector
 {
 	#[inline(always)]
@@ -53,15 +41,6 @@ impl Default for Vector
 		Self {
 			data: unsafe { _mm_setzero_ps() },
 		}
-	}
-}
-
-impl Display for Vector
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter<'_>) -> Result
-	{
-		write!(f, "[{}, {}, {}, {}]", self.x(), self.y(), self.z(), self.w())
 	}
 }
 
@@ -250,8 +229,25 @@ impl Vector
 	}
 
 	#[inline(always)]
+	/// Get an indexed value from the [`Vector`]. This is slow, don't use it unless you have to.
+	/// Panics if idx is not in the range [0, 3].
+	pub fn get(&self, idx: u8) -> f32
+	{
+		match idx
+		{
+			0 => self.x(),
+			1 => self.y(),
+			2 => self.z(),
+			3 => self.w(),
+			_ => panic!("Indexed out of Vector bounds"),
+		}
+	}
+
+	#[inline(always)]
 	/// Shuffles the components of a [`Vector`].
 	pub fn shuffle<const X: u32, const Y: u32, const Z: u32, const W: u32>(self) -> Self
+	where
+		[(); _MM_SHUFFLE(W, Z, Y, X) as usize]: ,
 	{
 		Self {
 			data: unsafe { _mm_shuffle_ps(self.data, self.data, _MM_SHUFFLE(W, Z, Y, X)) },
@@ -292,46 +288,6 @@ impl Vector
 			_mm_cvtss_f32(sum)
 		}
 	}
-
-	#[inline(always)]
-	/// Get the square of the four-dimensional length of the [`Vector`].
-	pub fn length3_square(self) -> f32 { dot3(self, self) }
-
-	#[inline(always)]
-	/// Get the square of the four-dimensional length of the [`Vector`].
-	pub fn length4_square(self) -> f32 { dot4(self, self) }
-
-	#[inline(always)]
-	/// Get the four-dimensional length of the [`Vector`].
-	pub fn length3(self) -> f32 { self.length3_square().sqrt() }
-
-	#[inline(always)]
-	/// Get the four-dimensional length of the [`Vector`].
-	pub fn length4(self) -> f32 { self.length4_square().sqrt() }
-
-	#[inline(always)]
-	/// Get the normalized four-dimensional length of the [`Vector`].
-	pub fn normalize3(self) -> Self { self / self.length3() }
-
-	#[inline(always)]
-	/// Get the normalized four-dimensional length of the [`Vector`].
-	pub fn normalize4(self) -> Self { self / self.length4() }
-}
-
-#[inline(always)]
-/// Get the three-dimensional dot product of two [`Vector`]s.
-pub fn dot3(lhs: Vector, rhs: Vector) -> f32 { (lhs * rhs).hsum3() }
-
-#[inline(always)]
-/// Get the four-dimensional dot product of two [`Vector`]s.
-pub fn dot4(lhs: Vector, rhs: Vector) -> f32 { (lhs * rhs).hsum4() }
-
-#[inline(always)]
-/// Get the three-dimensional cross product of two [`Vector`]s.
-pub fn cross(lhs: Vector, rhs: Vector) -> Vector
-{
-	let temp = lhs.shuffle::<1, 2, 0, 3>();
-	temp * rhs.shuffle::<2, 0, 1, 3>() - (temp * rhs).shuffle::<1, 2, 0, 3>()
 }
 
 #[inline(always)]

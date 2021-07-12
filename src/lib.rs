@@ -13,5 +13,7 @@
 
 //! spaceform is a SIMD-accelerated library for 3D graphics.
 
-pub mod matrix;
-pub mod vector;
+pub mod base;
+pub mod direction;
+pub mod normal;
+pub mod point;

@@ -82,6 +82,12 @@ impl DivAssign<f32> for Vector
 	fn div_assign(&mut self, rhs: f32) { *self = *self / rhs; }
 }
 
+impl From<[f32; 4]> for Vector
+{
+	#[inline(always)]
+	fn from(val: [f32; 4]) -> Self { Vector::new(val[0], val[1], val[2], val[3]) }
+}
+
 impl Mul for Vector
 {
 	type Output = Self;
@@ -157,6 +163,11 @@ impl SubAssign for Vector
 {
 	#[inline(always)]
 	fn sub_assign(&mut self, rhs: Self) { *self = *self - rhs; }
+}
+
+impl Into<[f32; 4]> for Vector
+{
+	fn into(self) -> [f32; 4] { [self.x(), self.y(), self.z(), self.w()] }
 }
 
 impl Vector
@@ -266,19 +277,8 @@ impl Vector
 	}
 
 	#[inline(always)]
-	/// Get the three-dimensional horizontal-sum of a [`Vector`].
-	pub fn hsum3(self) -> f32
-	{
-		let shuf = self.shuffle::<1, 2, 3, 0>();
-		let res = self + shuf;
-		let shuf = shuf.shuffle::<1, 2, 3, 0>();
-		let res = res + shuf;
-		unsafe { _mm_cvtss_f32(res.data) }
-	}
-
-	#[inline(always)]
 	/// Get the four-dimensional horizontal-sum of a [`Vector`].
-	pub fn hsum4(self) -> f32
+	pub fn hsum(self) -> f32
 	{
 		unsafe {
 			let shuf = _mm_movehdup_ps(self.data);

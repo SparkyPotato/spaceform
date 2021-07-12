@@ -5,7 +5,7 @@ use std::{
 	ops::{Mul, MulAssign},
 };
 
-use crate::vector::{dot4, Vector};
+use crate::base::Vector;
 
 #[derive(Copy, Clone, PartialEq)]
 /// A 4x4 matrix.
@@ -76,10 +76,10 @@ impl Mul for Matrix
 		for col in 0..4
 		{
 			columns[col] = Vector::new(
-				dot4(self.columns[col], rows[0]),
-				dot4(self.columns[col], rows[1]),
-				dot4(self.columns[col], rows[2]),
-				dot4(self.columns[col], rows[3]),
+				Vector::dot(self.columns[col], rows[0]),
+				Vector::dot(self.columns[col], rows[1]),
+				Vector::dot(self.columns[col], rows[2]),
+				Vector::dot(self.columns[col], rows[3]),
 			);
 		}
 
@@ -97,7 +97,7 @@ impl Matrix
 {
 	#[inline(always)]
 	/// Create a [`Matrix`] from 16 elements.
-	pub fn new(rows: [[f32; 4]; 4]) -> Self
+	pub fn rows(rows: [[f32; 4]; 4]) -> Self
 	{
 		Self {
 			columns: [
@@ -176,12 +176,13 @@ impl Matrix
 
 mod tests
 {
+	#[allow(unused_imports)] // TODO: Remove when rustc is fixed.
 	use super::*;
 
 	#[test]
 	fn multiply()
 	{
-		let mat = Matrix::new([
+		let mat = Matrix::rows([
 			[1f32, 2f32, 3f32, 4f32],
 			[5f32, 6f32, 7f32, 8f32],
 			[9f32, 10f32, 11f32, 12f32],
@@ -190,7 +191,7 @@ mod tests
 
 		assert_eq!(
 			mat * mat,
-			Matrix::new([
+			Matrix::rows([
 				[90f32, 100f32, 110f32, 120f32],
 				[202f32, 228f32, 254f32, 280f32],
 				[314f32, 356f32, 398f32, 440f32],
@@ -203,14 +204,14 @@ mod tests
 	fn transpose()
 	{
 		assert_eq!(
-			Matrix::new([
+			Matrix::rows([
 				[1f32, 2f32, 3f32, 4f32],
 				[5f32, 6f32, 7f32, 8f32],
 				[9f32, 10f32, 11f32, 12f32],
 				[13f32, 14f32, 15f32, 16f32],
 			])
 			.transpose(),
-			Matrix::new([
+			Matrix::rows([
 				[1f32, 5f32, 9f32, 13f32],
 				[2f32, 6f32, 10f32, 14f32],
 				[3f32, 7f32, 11f32, 15f32],

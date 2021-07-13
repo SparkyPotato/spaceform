@@ -6,10 +6,11 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 use std::{
 	convert::Into,
+	fmt::{Debug, Display},
 	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
-use crate::{base::Vector, direction::Direction};
+use crate::{base::Vector, coordinate_system::CoordinateSystem, direction::Direction};
 
 #[derive(Copy, Clone, PartialEq)]
 /// A surface normal. Mostly the same as [`Direction`]. May NOT be normalized.
@@ -29,10 +30,28 @@ impl AddAssign for Normal
 	fn add_assign(&mut self, rhs: Self) { *self = *self + rhs }
 }
 
+impl Debug for Normal
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
+		write!(f, "Norm [{}, {}, {}]", self.x(), self.y(), self.z())
+	}
+}
+
 impl Default for Normal
 {
 	#[inline(always)]
 	fn default() -> Self { Self(Vector::new(0f32, 0f32, 0f32, 0f32)) }
+}
+
+impl Display for Normal
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
+		write!(f, "Norm [{}, {}, {}]", self.x(), self.y(), self.z())
+	}
 }
 
 impl Div<f32> for Normal
@@ -148,6 +167,24 @@ impl Normal
 		{
 			self
 		}
+	}
+
+	#[inline(always)]
+	/// Transform to the coordinate system.
+	pub fn transform_to(self, system: &CoordinateSystem) -> Normal
+	{
+		Self::new(
+			Vector::dot(self.0, system.x.0),
+			Vector::dot(self.0, system.y.0),
+			Vector::dot(self.0, system.z.0),
+		)
+	}
+
+	#[inline(always)]
+	/// Transform from the coordinate system.
+	pub fn transform_from(self, system: &CoordinateSystem) -> Normal
+	{
+		Self(system.x.0 * self.x() + system.y.0 * self.y() + system.z.0 * self.z())
 	}
 
 	#[inline(always)]

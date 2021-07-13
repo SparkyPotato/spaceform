@@ -4,9 +4,12 @@
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::{
+	fmt::{Debug, Display},
+	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
-use crate::{base::Vector, normal::Normal};
+use crate::{base::Vector, coordinate_system::CoordinateSystem, normal::Normal};
 
 #[derive(Copy, Clone, PartialEq)]
 /// A direction in 3D space, with a W coordinate of 0.
@@ -26,10 +29,28 @@ impl AddAssign for Direction
 	fn add_assign(&mut self, rhs: Self) { *self = *self + rhs }
 }
 
+impl Debug for Direction
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
+		write!(f, "Dir [{}, {}, {}]", self.x(), self.y(), self.z())
+	}
+}
+
 impl Default for Direction
 {
 	#[inline(always)]
 	fn default() -> Self { Self(Vector::new(0f32, 0f32, 0f32, 0f32)) }
+}
+
+impl Display for Direction
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
+		write!(f, "Dir [{}, {}, {}]", self.x(), self.y(), self.z())
+	}
 }
 
 impl Div<f32> for Direction
@@ -140,18 +161,21 @@ impl Direction
 	}
 
 	#[inline(always)]
-	/// Transform to the coordinate system described by principle axes `x`, `y`, `z`. They do not have to be orthogonal.
-	pub fn transform_to(self, x: Direction, y: Direction, z: Direction) -> Direction
+	/// Transform to the coordinate system.
+	pub fn transform_to(self, system: &CoordinateSystem) -> Direction
 	{
-		Self::new(Self::dot(self, x), Self::dot(self, y), Self::dot(self, z))
+		Self::new(
+			Self::dot(self, system.x),
+			Self::dot(self, system.y),
+			Self::dot(self, system.z),
+		)
 	}
 
 	#[inline(always)]
-	/// Transform from the coordinate system described by principle axes `x`, `y`, `z`. They do not have to be
-	/// orthogonal.
-	pub fn transform_from(self, x: Direction, y: Direction, z: Direction) -> Direction
+	/// Transform from the coordinate system.
+	pub fn transform_from(self, system: &CoordinateSystem) -> Direction
 	{
-		x * self.x() + y * self.y() + z * self.z()
+		system.x * self.x() + system.y * self.y() + system.z * self.z()
 	}
 
 	#[inline(always)]
@@ -165,17 +189,4 @@ impl Direction
 	#[inline(always)]
 	/// Linear interpolate from `from` to `to` with a factor `t`.
 	pub fn lerp(from: Direction, to: Direction, t: f32) -> Direction { Direction(Vector::lerp(from.0, to.0, t)) }
-
-	#[inline(always)]
-	/// Convert from a spherical coordinate system to a [`Direction`].
-	/// # Arguments
-	/// `sin`: Sine of the polar angle (theta).  
-	/// `cos`: Cosine of the polar angle (theta).  
-	/// `phi`: The azimuthal angle.
-	/// # Returns
-	/// A unit [`Direction`] with `Y` up.
-	pub fn spherical(sin: f32, cos: f32, phi: f32) -> Direction
-	{
-		Direction::new(sin * phi.cos(), cos, cos * phi.sin())
-	}
 }

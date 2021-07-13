@@ -4,9 +4,12 @@
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::{
+	fmt::{Debug, Display},
+	ops::{Add, AddAssign, Sub, SubAssign},
+};
 
-use crate::{base::Vector, direction::Direction};
+use crate::{base::Vector, coordinate_system::CoordinateSystem, direction::Direction};
 
 #[derive(Copy, Clone, PartialEq)]
 /// A point in 3D space, with a W coordinate of 1.
@@ -26,10 +29,28 @@ impl AddAssign<Direction> for Point
 	fn add_assign(&mut self, rhs: Direction) { *self = *self + rhs }
 }
 
+impl Debug for Point
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
+		write!(f, "Point [{}, {}, {}]", self.x(), self.y(), self.z())
+	}
+}
+
 impl Default for Point
 {
 	#[inline(always)]
 	fn default() -> Self { Self(Vector::new(0f32, 0f32, 0f32, 1f32)) }
+}
+
+impl Display for Point
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
+		write!(f, "Point [{}, {}, {}]", self.x(), self.y(), self.z())
+	}
 }
 
 impl Sub for Point
@@ -91,6 +112,24 @@ impl Point
 		[(); _MM_SHUFFLE(3, Z, Y, X) as usize]: ,
 	{
 		Self(self.0.shuffle::<X, Y, Z, 3>())
+	}
+
+	#[inline(always)]
+	/// Transform to the coordinate system.
+	pub fn transform_to(self, system: &CoordinateSystem) -> Point
+	{
+		Self::new(
+			Vector::dot(self.0, system.x.0),
+			Vector::dot(self.0, system.y.0),
+			Vector::dot(self.0, system.z.0),
+		)
+	}
+
+	#[inline(always)]
+	/// Transform from the coordinate system.
+	pub fn transform_from(self, system: &CoordinateSystem) -> Point
+	{
+		Self(system.x.0 * self.x() + system.y.0 * self.y() + system.z.0 * self.z())
 	}
 
 	#[inline(always)]

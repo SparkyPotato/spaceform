@@ -3,11 +3,12 @@ use spaceform::base::{Matrix, Vector};
 
 fn component_arithmetic(c: &mut Criterion)
 {
+	let vec = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
+
 	c.bench_function("1000 adds", |b| {
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
 				black_box(vec + vec);
 			}
 		})
@@ -17,7 +18,6 @@ fn component_arithmetic(c: &mut Criterion)
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
 				black_box(vec - vec);
 			}
 		})
@@ -27,7 +27,6 @@ fn component_arithmetic(c: &mut Criterion)
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
 				black_box(vec * vec);
 			}
 		})
@@ -37,7 +36,6 @@ fn component_arithmetic(c: &mut Criterion)
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
 				black_box(vec / vec);
 			}
 		})
@@ -46,11 +44,14 @@ fn component_arithmetic(c: &mut Criterion)
 
 fn misc(c: &mut Criterion)
 {
+	let vec = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
+	let vec1 = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
+	let vec2 = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
+
 	c.bench_function("1000 abs", |b| {
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
 				black_box(vec.abs());
 			}
 		})
@@ -60,7 +61,6 @@ fn misc(c: &mut Criterion)
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
 				black_box(vec.hsum());
 			}
 		})
@@ -70,8 +70,6 @@ fn misc(c: &mut Criterion)
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec1 = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
-				let vec2 = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
 				black_box(Vector::min(vec1, vec2));
 			}
 		})
@@ -81,8 +79,6 @@ fn misc(c: &mut Criterion)
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec1 = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
-				let vec2 = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
 				black_box(Vector::max(vec1, vec2));
 			}
 		})
@@ -91,12 +87,13 @@ fn misc(c: &mut Criterion)
 
 fn products(c: &mut Criterion)
 {
+	let vec1 = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
+	let vec2 = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
+
 	c.bench_function("1000 dots", |b| {
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec1 = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
-				let vec2 = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
 				black_box(Vector::dot(vec1, vec2));
 			}
 		})
@@ -106,8 +103,6 @@ fn products(c: &mut Criterion)
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec1 = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
-				let vec2 = black_box(Vector::new(1f32, 2f32, 3f32, 4f32));
 				black_box(Vector::cross(vec1, vec2));
 			}
 		})
@@ -116,16 +111,18 @@ fn products(c: &mut Criterion)
 
 fn mul(c: &mut Criterion)
 {
+	let vec = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
+	let mat = black_box(Matrix::rows([
+		[1f32, 2f32, 3f32, 4f32],
+		[5f32, 6f32, 7f32, 8f32],
+		[9f32, 10f32, 11f32, 12f32],
+		[13f32, 14f32, 15f32, 16f32],
+	]));
+
 	c.bench_function("1000 matrix muls", |b| {
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let mat = black_box(Matrix::rows([
-					[1f32, 2f32, 3f32, 4f32],
-					[5f32, 6f32, 7f32, 8f32],
-					[9f32, 10f32, 11f32, 12f32],
-					[13f32, 14f32, 15f32, 16f32],
-				]));
 				black_box(mat * mat);
 			}
 		})
@@ -135,13 +132,6 @@ fn mul(c: &mut Criterion)
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let vec = black_box(Vector::new(-1f32, 2f32, -3f32, 4f32));
-				let mat = black_box(Matrix::rows([
-					[1f32, 2f32, 3f32, 4f32],
-					[5f32, 6f32, 7f32, 8f32],
-					[9f32, 10f32, 11f32, 12f32],
-					[13f32, 14f32, 15f32, 16f32],
-				]));
 				black_box(vec * mat);
 			}
 		})
@@ -150,16 +140,17 @@ fn mul(c: &mut Criterion)
 
 fn others(c: &mut Criterion)
 {
+	let mat = black_box(Matrix::rows([
+		[1f32, 2f32, 3f32, 4f32],
+		[5f32, 6f32, 7f32, 8f32],
+		[9f32, 10f32, 11f32, 12f32],
+		[13f32, 14f32, 15f32, 16f32],
+	]));
+
 	c.bench_function("1000 transposes", |b| {
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let mat = black_box(Matrix::rows([
-					[1f32, 2f32, 3f32, 4f32],
-					[5f32, 6f32, 7f32, 8f32],
-					[9f32, 10f32, 11f32, 12f32],
-					[13f32, 14f32, 15f32, 16f32],
-				]));
 				black_box(mat.transpose());
 			}
 		})
@@ -169,12 +160,6 @@ fn others(c: &mut Criterion)
 		b.iter(|| {
 			for _ in 0..1000
 			{
-				let mat = black_box(Matrix::rows([
-					[1f32, 2f32, 3f32, 4f32],
-					[5f32, 6f32, 7f32, 8f32],
-					[9f32, 10f32, 11f32, 12f32],
-					[13f32, 14f32, 15f32, 16f32],
-				]));
 				black_box(mat.inverse());
 			}
 		})

@@ -10,7 +10,11 @@ use std::{
 	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
-use crate::{base::Vector, coordinate_system::CoordinateSystem, direction::Direction};
+use crate::{
+	base::{shuffle_args, Vector},
+	coordinate_system::CoordinateSystem,
+	direction::Direction,
+};
 
 #[derive(Copy, Clone, PartialEq)]
 /// A surface normal. Mostly the same as [`Direction`]. May NOT be normalized.
@@ -150,7 +154,8 @@ impl Normal
 	/// Shuffle the components of a [`Direction`].
 	pub fn shuffle<const X: u32, const Y: u32, const Z: u32>(self) -> Self
 	where
-		[(); _MM_SHUFFLE(3, Z, Y, X) as usize]: ,
+		[(); shuffle_args(X, Y, Z, 3)]: Sized,
+		[(); _MM_SHUFFLE(3, Z, Y, X) as usize]: Sized,
 	{
 		Self(self.0.shuffle::<X, Y, Z, 3>())
 	}

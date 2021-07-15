@@ -7,6 +7,9 @@ use core::arch::x86_64::*;
 use core::{f32, panic};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+use super::shuffle_args;
+
+#[repr(transparent)]
 #[derive(Copy, Clone)]
 /// A four-dimensional row vector.
 pub struct Vector
@@ -258,10 +261,24 @@ impl Vector
 	/// Shuffles the components of a [`Vector`].
 	pub fn shuffle<const X: u32, const Y: u32, const Z: u32, const W: u32>(self) -> Self
 	where
-		[(); _MM_SHUFFLE(W, Z, Y, X) as usize]: ,
+		[(); shuffle_args(X, Y, Z, W)]: Sized,
+		[(); _MM_SHUFFLE(W, Z, Y, X) as usize]: Sized,
 	{
 		Self {
 			data: unsafe { _mm_shuffle_ps(self.data, self.data, _MM_SHUFFLE(W, Z, Y, X)) },
+		}
+	}
+
+	#[inline(always)]
+	/// Shuffles and merges the components of two [`Vector`]s.
+	/// Takes `x` and `y` from `vec1`, and `z` and `w` from `vec2`.
+	pub fn shuffle_merge<const X: u32, const Y: u32, const Z: u32, const W: u32>(vec1: Vector, vec2: Vector) -> Self
+	where
+		[(); shuffle_args(X, Y, Z, W)]: Sized,
+		[(); _MM_SHUFFLE(W, Z, Y, X) as usize]: Sized,
+	{
+		Self {
+			data: unsafe { _mm_shuffle_ps(vec1.data, vec2.data, _MM_SHUFFLE(W, Z, Y, X)) },
 		}
 	}
 

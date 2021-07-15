@@ -3,6 +3,7 @@
 use core::f32;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+#[repr(transparent)]
 #[derive(Copy, Clone)]
 /// A four-dimensional row vector.
 pub struct Vector
@@ -197,6 +198,24 @@ impl Vector
 				self.data[Y as usize],
 				self.data[Z as usize],
 				self.data[W as usize],
+			],
+		}
+	}
+
+	#[inline(always)]
+	/// Shuffles and merges the components of two [`Vector`]s.
+	/// Takes `x` and `y` from `vec1`, and `z` and `w` from `vec2`.
+	pub fn shuffle_merge<const X: u32, const Y: u32, const Z: u32, const W: u32>(vec1: Vector, vec2: Vector) -> Self
+	where
+		[(); shuffle_args(X, Y, Z, W)]: Sized,
+		[(); _MM_SHUFFLE(W, Z, Y, X) as usize]: Sized,
+	{
+		Self {
+			data: [
+				vec1.data[X as usize],
+				vec1.data[Y as usize],
+				vec2.data[Z as usize],
+				vec2.data[W as usize],
 			],
 		}
 	}

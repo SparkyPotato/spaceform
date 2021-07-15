@@ -5,6 +5,7 @@
 #![feature(array_zip)]
 #![feature(const_evaluatable_checked)]
 #![feature(const_generics)]
+#![feature(const_panic)]
 #![feature(stdarch)]
 // Rustdoc
 #![warn(missing_docs)]

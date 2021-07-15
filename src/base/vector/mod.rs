@@ -17,6 +17,19 @@ pub use scalar::*;
 
 use crate::base::Matrix;
 
+/// Function that restricts the input arguments to `shuffle` at compile time.
+pub const fn shuffle_args(x: u32, y: u32, z: u32, w: u32) -> usize
+{
+	if x < 4 && y < 4 && z < 4 && w < 4
+	{
+		1
+	}
+	else
+	{
+		panic!("Shuffle arguments must be in the range [0, 3]")
+	}
+}
+
 impl Debug for Vector
 {
 	#[inline(always)]
@@ -39,6 +52,7 @@ impl Mul<Matrix> for Vector
 {
 	type Output = Self;
 
+	#[inline(always)]
 	fn mul(self, rhs: Matrix) -> Self::Output
 	{
 		Vector::new(
@@ -52,6 +66,7 @@ impl Mul<Matrix> for Vector
 
 impl MulAssign<Matrix> for Vector
 {
+	#[inline(always)]
 	fn mul_assign(&mut self, rhs: Matrix) { *self = *self * rhs }
 }
 
@@ -182,6 +197,18 @@ mod tests
 		assert_eq!(vec.shuffle::<0, 0, 0, 0>(), Vector::new(1f32, 1f32, 1f32, 1f32));
 		assert_eq!(vec.shuffle::<1, 2, 3, 0>(), Vector::new(2f32, 3f32, 4f32, 1f32));
 		assert_eq!(vec.shuffle::<3, 3, 3, 3>(), Vector::new(4f32, 4f32, 4f32, 4f32));
+	}
+
+	#[test]
+	fn shuffle_merge()
+	{
+		let vec1 = Vector::new(1f32, 2f32, 3f32, 4f32);
+		let vec2 = Vector::new(4f32, 3f32, 2f32, 1f32);
+
+		assert_eq!(
+			Vector::shuffle_merge::<0, 0, 0, 0>(vec1, vec2),
+			Vector::new(1f32, 1f32, 4f32, 4f32)
+		);
 	}
 
 	#[test]

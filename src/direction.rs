@@ -9,7 +9,11 @@ use std::{
 	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
-use crate::{base::Vector, coordinate_system::CoordinateSystem, normal::Normal};
+use crate::{
+	base::{shuffle_args, Vector},
+	coordinate_system::CoordinateSystem,
+	normal::Normal,
+};
 
 #[derive(Copy, Clone, PartialEq)]
 /// A direction in 3D space, with a W coordinate of 0.
@@ -155,7 +159,8 @@ impl Direction
 	/// Shuffle the components of a [`Direction`].
 	pub fn shuffle<const X: u32, const Y: u32, const Z: u32>(self) -> Self
 	where
-		[(); _MM_SHUFFLE(3, Z, Y, X) as usize]: ,
+		[(); shuffle_args(X, Y, Z, 3)]: Sized,
+		[(); _MM_SHUFFLE(3, Z, Y, X) as usize]: Sized,
 	{
 		Self(self.0.shuffle::<X, Y, Z, 3>())
 	}

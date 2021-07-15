@@ -9,7 +9,11 @@ use std::{
 	ops::{Add, AddAssign, Sub, SubAssign},
 };
 
-use crate::{base::Vector, coordinate_system::CoordinateSystem, direction::Direction};
+use crate::{
+	base::{shuffle_args, Vector},
+	coordinate_system::CoordinateSystem,
+	direction::Direction,
+};
 
 #[derive(Copy, Clone, PartialEq)]
 /// A point in 3D space, with a W coordinate of 1.
@@ -109,7 +113,8 @@ impl Point
 	/// Shuffle the components of a [`Point`].
 	pub fn shuffle<const X: u32, const Y: u32, const Z: u32>(self) -> Self
 	where
-		[(); _MM_SHUFFLE(3, Z, Y, X) as usize]: ,
+		[(); shuffle_args(X, Y, Z, 3)]: Sized,
+		[(); _MM_SHUFFLE(3, Z, Y, X) as usize]: Sized,
 	{
 		Self(self.0.shuffle::<X, Y, Z, 3>())
 	}

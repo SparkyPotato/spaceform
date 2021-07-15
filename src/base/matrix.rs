@@ -7,6 +7,7 @@ use std::{
 
 use crate::base::Vector;
 
+#[repr(transparent)]
 #[derive(Copy, Clone, PartialEq)]
 /// A 4x4 matrix.
 pub struct Matrix
@@ -157,10 +158,63 @@ impl Matrix
 		}
 	}
 
+	#[inline(always)]
+	/// Calculate the inverse of the [`Matrix`].
+	/// Is quite slow, don't use it much.
+	pub fn inverse(&self) -> Matrix
+	{
+		// https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
+
+		let a = Vector::shuffle_merge::<0, 1, 0, 1>(self.columns[0], self.columns[1]);
+		let c = Vector::shuffle_merge::<2, 3, 2, 3>(self.columns[0], self.columns[1]);
+		let b = Vector::shuffle_merge::<0, 1, 0, 1>(self.columns[2], self.columns[3]);
+		let d = Vector::shuffle_merge::<2, 3, 2, 3>(self.columns[2], self.columns[3]);
+
+		let det_sub = Vector::shuffle_merge::<0, 2, 0, 2>(self.columns[0], self.columns[2])
+			* Vector::shuffle_merge::<1, 3, 1, 3>(self.columns[1], self.columns[3])
+			- Vector::shuffle_merge::<1, 3, 1, 3>(self.columns[0], self.columns[2])
+				* Vector::shuffle_merge::<0, 2, 0, 2>(self.columns[1], self.columns[3]);
+		//  ^^^^ rustfmt what?
+		let det_a = det_sub.shuffle::<0, 0, 0, 0>();
+		let det_c = det_sub.shuffle::<1, 1, 1, 1>();
+		let det_b = det_sub.shuffle::<2, 2, 2, 2>();
+		let det_d = det_sub.shuffle::<3, 3, 3, 3>();
+
+		let d_c = mat2_adj_mul(d, c);
+		let a_b = mat2_adj_mul(a, b);
+
+		let x_ = det_d * a - mat2_mul(b, d_c);
+		let w_ = det_a * d - mat2_mul(c, a_b);
+		let y_ = det_b * c - mat2_mul_adj(d, a_b);
+		let z_ = det_c * b - mat2_mul_adj(a, d_c);
+
+		let tr = a_b * d_c.shuffle::<0, 2, 1, 3>();
+		let tr = tr.hsum();
+		let det_m = (det_a * det_d + det_b * det_c) - Vector::new(tr, tr, tr, tr);
+
+		let r_det_m = Vector::new(1f32, -1f32, -1f32, 1f32) / det_m;
+
+		let x = x_ * r_det_m;
+		let y = y_ * r_det_m;
+		let z = z_ * r_det_m;
+		let w = w_ * r_det_m;
+
+		Self {
+			columns: [
+				Vector::shuffle_merge::<3, 1, 3, 1>(x, z),
+				Vector::shuffle_merge::<2, 0, 2, 0>(x, z),
+				Vector::shuffle_merge::<3, 1, 3, 1>(y, w),
+				Vector::shuffle_merge::<2, 0, 2, 0>(y, w),
+			],
+		}
+	}
+
+	#[inline(always)]
 	/// Get a column of the [`Matrix`].
 	/// Panics if idx is not in the range [0, 3].
 	pub fn get_column(&self, idx: u8) -> Vector { self.columns[idx as usize] }
 
+	#[inline(always)]
 	/// Get a row of the [`Matrix`].
 	/// Panics if idx is not in the range [0, 3].
 	pub fn get_row(&self, idx: u8) -> Vector
@@ -172,6 +226,26 @@ impl Matrix
 			self.columns[3].get(idx),
 		)
 	}
+}
+
+// https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
+
+#[inline(always)]
+fn mat2_mul(vec1: Vector, vec2: Vector) -> Vector
+{
+	vec1 * vec2.shuffle::<0, 0, 3, 3>() + vec1.shuffle::<2, 3, 0, 1>() + vec2.shuffle::<1, 1, 2, 2>()
+}
+
+#[inline(always)]
+fn mat2_adj_mul(vec1: Vector, vec2: Vector) -> Vector
+{
+	vec1.shuffle::<3, 0, 3, 0>() * vec2 - vec1.shuffle::<2, 1, 2, 1>() * vec2.shuffle::<1, 0, 3, 2>()
+}
+
+#[inline(always)]
+fn mat2_mul_adj(vec1: Vector, vec2: Vector) -> Vector
+{
+	vec1 * vec2.shuffle::<3, 3, 0, 0>() - vec1.shuffle::<2, 3, 0, 1>() * vec2.shuffle::<1, 1, 2, 2>()
 }
 
 mod tests
@@ -218,5 +292,18 @@ mod tests
 				[4f32, 8f32, 12f32, 16f32],
 			])
 		)
+	}
+
+	#[test]
+	fn inverse()
+	{
+		let mat = Matrix::rows([
+			[2f32, 0f32, 0f32, 0f32],
+			[0f32, 2f32, 0f32, 0f32],
+			[0f32, 0f32, 2f32, 0f32],
+			[0f32, 0f32, 0f32, 1f32],
+		]);
+
+		assert_eq!(mat * mat.inverse(), Matrix::default())
 	}
 }

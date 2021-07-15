@@ -12,8 +12,7 @@ use crate::base::Vector;
 /// A 4x4 matrix.
 pub struct Matrix
 {
-	// Stored column major to make vector * matrix faster.
-	columns: [Vector; 4],
+	rows: [Vector; 4],
 }
 
 impl Debug for Matrix
@@ -45,46 +44,16 @@ impl Mul for Matrix
 	#[inline(always)]
 	fn mul(self, rhs: Self) -> Self
 	{
-		let rows = [
-			Vector::new(
-				rhs.columns[0].x(),
-				rhs.columns[1].x(),
-				rhs.columns[2].x(),
-				rhs.columns[3].x(),
-			),
-			Vector::new(
-				rhs.columns[0].y(),
-				rhs.columns[1].y(),
-				rhs.columns[2].y(),
-				rhs.columns[3].y(),
-			),
-			Vector::new(
-				rhs.columns[0].z(),
-				rhs.columns[1].z(),
-				rhs.columns[2].z(),
-				rhs.columns[3].z(),
-			),
-			Vector::new(
-				rhs.columns[0].w(),
-				rhs.columns[1].w(),
-				rhs.columns[2].w(),
-				rhs.columns[3].w(),
-			),
-		];
-
-		let mut columns = [Vector::default(); 4];
-
-		for col in 0..4
+		let mut rows = [Vector::default(); 4];
+		for i in 0..4
 		{
-			columns[col] = Vector::new(
-				Vector::dot(self.columns[col], rows[0]),
-				Vector::dot(self.columns[col], rows[1]),
-				Vector::dot(self.columns[col], rows[2]),
-				Vector::dot(self.columns[col], rows[3]),
-			);
+			rows[i] = rhs.rows[0] * self.rows[i].x()
+				+ rhs.rows[1] * self.rows[i].y()
+				+ rhs.rows[2] * self.rows[i].z()
+				+ rhs.rows[3] * self.rows[i].w()
 		}
 
-		Self { columns }
+		Self { rows }
 	}
 }
 
@@ -101,11 +70,11 @@ impl Matrix
 	pub fn rows(rows: [[f32; 4]; 4]) -> Self
 	{
 		Self {
-			columns: [
-				Vector::new(rows[0][0], rows[1][0], rows[2][0], rows[3][0]),
-				Vector::new(rows[0][1], rows[1][1], rows[2][1], rows[3][1]),
-				Vector::new(rows[0][2], rows[1][2], rows[2][2], rows[3][2]),
-				Vector::new(rows[0][3], rows[1][3], rows[2][3], rows[3][3]),
+			rows: [
+				Vector::new(rows[0][0], rows[0][1], rows[0][2], rows[0][3]),
+				Vector::new(rows[1][0], rows[1][1], rows[1][2], rows[1][3]),
+				Vector::new(rows[2][0], rows[2][1], rows[2][2], rows[2][3]),
+				Vector::new(rows[3][0], rows[3][1], rows[3][2], rows[3][3]),
 			],
 		}
 	}
@@ -115,7 +84,7 @@ impl Matrix
 	pub fn identity() -> Self
 	{
 		Self {
-			columns: [
+			rows: [
 				Vector::new(1f32, 0f32, 0f32, 0f32),
 				Vector::new(0f32, 1f32, 0f32, 0f32),
 				Vector::new(0f32, 0f32, 1f32, 0f32),
@@ -128,32 +97,19 @@ impl Matrix
 	/// Calculate the transpose of the [`Matrix`].
 	pub fn transpose(&self) -> Matrix
 	{
-		Matrix {
-			columns: [
-				Vector::new(
-					self.columns[0].x(),
-					self.columns[1].x(),
-					self.columns[2].x(),
-					self.columns[3].x(),
-				),
-				Vector::new(
-					self.columns[0].y(),
-					self.columns[1].y(),
-					self.columns[2].y(),
-					self.columns[3].y(),
-				),
-				Vector::new(
-					self.columns[0].z(),
-					self.columns[1].z(),
-					self.columns[2].z(),
-					self.columns[3].z(),
-				),
-				Vector::new(
-					self.columns[0].w(),
-					self.columns[1].w(),
-					self.columns[2].w(),
-					self.columns[3].w(),
-				),
+		let temp = [
+			Vector::shuffle_merge::<0, 1, 0, 1>(self.rows[0], self.rows[1]),
+			Vector::shuffle_merge::<2, 3, 2, 3>(self.rows[0], self.rows[1]),
+			Vector::shuffle_merge::<0, 1, 0, 1>(self.rows[2], self.rows[3]),
+			Vector::shuffle_merge::<2, 3, 2, 3>(self.rows[2], self.rows[3]),
+		];
+
+		Self {
+			rows: [
+				Vector::shuffle_merge::<0, 2, 0, 2>(temp[0], temp[1]),
+				Vector::shuffle_merge::<1, 3, 1, 3>(temp[0], temp[1]),
+				Vector::shuffle_merge::<0, 2, 0, 2>(temp[2], temp[3]),
+				Vector::shuffle_merge::<1, 3, 1, 3>(temp[2], temp[3]),
 			],
 		}
 	}
@@ -165,15 +121,15 @@ impl Matrix
 	{
 		// https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
 
-		let a = Vector::shuffle_merge::<0, 1, 0, 1>(self.columns[0], self.columns[1]);
-		let c = Vector::shuffle_merge::<2, 3, 2, 3>(self.columns[0], self.columns[1]);
-		let b = Vector::shuffle_merge::<0, 1, 0, 1>(self.columns[2], self.columns[3]);
-		let d = Vector::shuffle_merge::<2, 3, 2, 3>(self.columns[2], self.columns[3]);
+		let a = Vector::shuffle_merge::<0, 1, 0, 1>(self.rows[0], self.rows[1]);
+		let c = Vector::shuffle_merge::<2, 3, 2, 3>(self.rows[0], self.rows[1]);
+		let b = Vector::shuffle_merge::<0, 1, 0, 1>(self.rows[2], self.rows[3]);
+		let d = Vector::shuffle_merge::<2, 3, 2, 3>(self.rows[2], self.rows[3]);
 
-		let det_sub = Vector::shuffle_merge::<0, 2, 0, 2>(self.columns[0], self.columns[2])
-			* Vector::shuffle_merge::<1, 3, 1, 3>(self.columns[1], self.columns[3])
-			- Vector::shuffle_merge::<1, 3, 1, 3>(self.columns[0], self.columns[2])
-				* Vector::shuffle_merge::<0, 2, 0, 2>(self.columns[1], self.columns[3]);
+		let det_sub = Vector::shuffle_merge::<0, 2, 0, 2>(self.rows[0], self.rows[2])
+			* Vector::shuffle_merge::<1, 3, 1, 3>(self.rows[1], self.rows[3])
+			- Vector::shuffle_merge::<1, 3, 1, 3>(self.rows[0], self.rows[2])
+				* Vector::shuffle_merge::<0, 2, 0, 2>(self.rows[1], self.rows[3]);
 		//  ^^^^ rustfmt what?
 		let det_a = det_sub.shuffle::<0, 0, 0, 0>();
 		let det_c = det_sub.shuffle::<1, 1, 1, 1>();
@@ -200,7 +156,7 @@ impl Matrix
 		let w = w_ * r_det_m;
 
 		Self {
-			columns: [
+			rows: [
 				Vector::shuffle_merge::<3, 1, 3, 1>(x, z),
 				Vector::shuffle_merge::<2, 0, 2, 0>(x, z),
 				Vector::shuffle_merge::<3, 1, 3, 1>(y, w),
@@ -210,20 +166,20 @@ impl Matrix
 	}
 
 	#[inline(always)]
-	/// Get a column of the [`Matrix`].
-	/// Panics if idx is not in the range [0, 3].
-	pub fn get_column(&self, idx: u8) -> Vector { self.columns[idx as usize] }
-
-	#[inline(always)]
 	/// Get a row of the [`Matrix`].
 	/// Panics if idx is not in the range [0, 3].
-	pub fn get_row(&self, idx: u8) -> Vector
+	pub fn get_row(&self, idx: u8) -> Vector { self.rows[idx as usize] }
+
+	#[inline(always)]
+	/// Get a column of the [`Matrix`].
+	/// Panics if idx is not in the range [0, 3].
+	pub fn get_column(&self, idx: u8) -> Vector
 	{
 		Vector::new(
-			self.columns[0].get(idx),
-			self.columns[1].get(idx),
-			self.columns[2].get(idx),
-			self.columns[3].get(idx),
+			self.rows[0].get(idx),
+			self.rows[1].get(idx),
+			self.rows[2].get(idx),
+			self.rows[3].get(idx),
 		)
 	}
 }

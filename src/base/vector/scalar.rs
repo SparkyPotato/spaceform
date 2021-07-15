@@ -235,28 +235,24 @@ impl Vector
 	}
 
 	#[inline(always)]
-	/// Get the three-dimensional horizontal-sum of a [`Vector`].
-	pub fn hsum3(self) -> f32 { self.data[0] + self.data[1] + self.data[2] }
+	/// Get the four-dimensional horizontal-sum of a [`Vector`].
+	pub fn hsum(self) -> f32 { self.data[0] + self.data[1] + self.data[2] }
 
 	#[inline(always)]
-	/// Get the four-dimensional horizontal-sum of a [`Vector`].
-	pub fn hsum4(self) -> f32 { self.data[0] + self.data[1] + self.data[2] + self.data[3] }
-}
-
-#[inline(always)]
-/// Get the component-wise minimums.
-pub fn min(lhs: Vector, rhs: Vector) -> Vector
-{
-	Vector {
-		data: lhs.data.zip(rhs.data).map(|val| f32::min(val.0, val.1)),
+	/// Get the component-wise minimums.
+	pub fn min(lhs: Vector, rhs: Vector) -> Vector
+	{
+		Vector {
+			data: lhs.data.zip(rhs.data).map(|val| f32::min(val.0, val.1)),
+		}
 	}
-}
 
-#[inline(always)]
-/// Get the component-wise maximums.
-pub fn max(lhs: Vector, rhs: Vector) -> Vector
-{
-	Vector {
-		data: lhs.data.zip(rhs.data).map(|val| f32::max(val.0, val.1)),
+	#[inline(always)]
+	/// Get the component-wise maximums.
+	pub fn max(lhs: Vector, rhs: Vector) -> Vector
+	{
+		Vector {
+			data: lhs.data.zip(rhs.data).map(|val| f32::max(val.0, val.1)),
+		}
 	}
 }

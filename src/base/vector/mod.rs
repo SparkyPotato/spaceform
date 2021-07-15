@@ -55,12 +55,7 @@ impl Mul<Matrix> for Vector
 	#[inline(always)]
 	fn mul(self, rhs: Matrix) -> Self::Output
 	{
-		Vector::new(
-			Self::dot(rhs.get_column(0), self),
-			Self::dot(rhs.get_column(1), self),
-			Self::dot(rhs.get_column(2), self),
-			Self::dot(rhs.get_column(3), self),
-		)
+		rhs.get_row(0) * self.x() + rhs.get_row(1) * self.y() + rhs.get_row(2) * self.z() + rhs.get_row(3) * self.w()
 	}
 }
 
@@ -98,7 +93,10 @@ impl Vector
 
 	#[inline(always)]
 	/// Clamp `val` between `min_val` and `max_val`.
-	pub fn clamp(val: Vector, min_val: Vector, max_val: Vector) -> Vector { min(max(val, min_val), max_val) }
+	pub fn clamp(val: Vector, min_val: Vector, max_val: Vector) -> Vector
+	{
+		Vector::min(Vector::max(val, min_val), max_val)
+	}
 
 	#[inline(always)]
 	/// Linear interpolate from `from` to `to` with a factor `t`.
@@ -155,9 +153,16 @@ mod tests
 	fn multiply()
 	{
 		let vec = Vector::new(1f32, 2f32, 3f32, 4f32);
+		let mat = Matrix::rows([
+			[1f32, 2f32, 3f32, 4f32],
+			[5f32, 6f32, 7f32, 8f32],
+			[9f32, 10f32, 11f32, 12f32],
+			[13f32, 14f32, 15f32, 16f32],
+		]);
 
 		assert_eq!(vec * 2f32, Vector::new(2f32, 4f32, 6f32, 8f32));
 		assert_eq!(vec * vec, Vector::new(1f32, 4f32, 9f32, 16f32));
+		assert_eq!(vec * mat, Vector::new(90f32, 100f32, 110f32, 120f32));
 	}
 
 	#[test]
@@ -254,7 +259,7 @@ mod tests
 		let vec1 = Vector::new(1f32, 2f32, 3f32, 4f32);
 		let vec2 = Vector::new(4f32, 3f32, 2f32, 1f32);
 
-		assert_eq!(min(vec1, vec2), Vector::new(1f32, 2f32, 2f32, 1f32));
-		assert_eq!(max(vec1, vec2), Vector::new(4f32, 3f32, 3f32, 4f32));
+		assert_eq!(Vector::min(vec1, vec2), Vector::new(1f32, 2f32, 2f32, 1f32));
+		assert_eq!(Vector::max(vec1, vec2), Vector::new(4f32, 3f32, 3f32, 4f32));
 	}
 }

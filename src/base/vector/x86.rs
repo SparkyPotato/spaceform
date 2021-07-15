@@ -298,30 +298,30 @@ impl Vector
 	pub fn hsum(self) -> f32
 	{
 		unsafe {
-			let shuf = _mm_movehdup_ps(self.data);
+			let shuf = _mm_shuffle_ps(self.data, self.data, _MM_SHUFFLE(2, 3, 0, 1));
 			let sum = _mm_add_ps(self.data, shuf);
 			let shuf = _mm_movehl_ps(shuf, sum);
 			let sum = _mm_add_ps(sum, shuf);
 			_mm_cvtss_f32(sum)
 		}
 	}
-}
 
-#[inline(always)]
-/// Get the component-wise minimums.
-pub fn min(lhs: Vector, rhs: Vector) -> Vector
-{
-	Vector {
-		data: unsafe { _mm_min_ps(lhs.data, rhs.data) },
+	#[inline(always)]
+	/// Get the component-wise minimums.
+	pub fn min(lhs: Vector, rhs: Vector) -> Vector
+	{
+		Vector {
+			data: unsafe { _mm_min_ps(lhs.data, rhs.data) },
+		}
 	}
-}
 
-#[inline(always)]
-/// Get the component-wise maximums.
-pub fn max(lhs: Vector, rhs: Vector) -> Vector
-{
-	Vector {
-		data: unsafe { _mm_max_ps(lhs.data, rhs.data) },
+	#[inline(always)]
+	/// Get the component-wise maximums.
+	pub fn max(lhs: Vector, rhs: Vector) -> Vector
+	{
+		Vector {
+			data: unsafe { _mm_max_ps(lhs.data, rhs.data) },
+		}
 	}
 }
 

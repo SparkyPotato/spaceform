@@ -8,8 +8,15 @@ repository = "https://github.com/SparkyPotato/spaceform"
 readme = "README.md"
 edition = "2018"
 
+[dev-dependencies]
+criterion = "0.3"
+
 [dependencies]
 
 [features]
 default = ["simd"]
 simd = []
+
+[[bench]]
+name = "benchmarks"
+harness = false

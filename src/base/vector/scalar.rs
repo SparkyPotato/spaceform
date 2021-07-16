@@ -1,14 +1,22 @@
 //! Implementation using scalar math only.
 
 use core::f32;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::{
+	ops::{Add, Div, Mul, Sub},
+	slice::from_raw_parts,
+};
 
-#[repr(transparent)]
-#[derive(Copy, Clone)]
+use crate::base::shuffle_args;
+
+#[repr(C)]
+#[derive(Copy, Clone, PartialEq)]
 /// A four-dimensional row vector.
 pub struct Vector
 {
-	data: [f32; 4],
+	x: f32,
+	y: f32,
+	z: f32,
+	w: f32,
 }
 
 impl Add for Vector
@@ -19,15 +27,12 @@ impl Add for Vector
 	fn add(self, rhs: Self) -> Self
 	{
 		Self {
-			data: self.data.zip(rhs.data).map(|val| val.0 + val.1),
+			x: self.x + rhs.x,
+			y: self.y + rhs.y,
+			z: self.z + rhs.z,
+			w: self.w + rhs.w,
 		}
 	}
-}
-
-impl AddAssign for Vector
-{
-	#[inline(always)]
-	fn add_assign(&mut self, rhs: Self) { *self = *self + rhs; }
 }
 
 impl Default for Vector
@@ -36,7 +41,10 @@ impl Default for Vector
 	fn default() -> Self
 	{
 		Self {
-			data: [0f32, 0f32, 0f32, 0f32],
+			x: 0f32,
+			y: 0f32,
+			z: 0f32,
+			w: 0f32,
 		}
 	}
 }
@@ -49,15 +57,12 @@ impl Div for Vector
 	fn div(self, rhs: Self) -> Self
 	{
 		Self {
-			data: self.data.zip(rhs.data).map(|val| val.0 / val.1),
+			x: self.x / rhs.x,
+			y: self.y / rhs.y,
+			z: self.z / rhs.z,
+			w: self.w / rhs.w,
 		}
 	}
-}
-
-impl DivAssign for Vector
-{
-	#[inline(always)]
-	fn div_assign(&mut self, rhs: Self) { *self = *self / rhs; }
 }
 
 impl Div<f32> for Vector
@@ -68,15 +73,12 @@ impl Div<f32> for Vector
 	fn div(self, rhs: f32) -> Self
 	{
 		Self {
-			data: self.data.map(|val| val / rhs),
+			x: self.x / rhs,
+			y: self.y / rhs,
+			z: self.z / rhs,
+			w: self.w / rhs,
 		}
 	}
-}
-
-impl DivAssign<f32> for Vector
-{
-	#[inline(always)]
-	fn div_assign(&mut self, rhs: f32) { *self = *self / rhs; }
 }
 
 impl Mul for Vector
@@ -87,15 +89,12 @@ impl Mul for Vector
 	fn mul(self, rhs: Self) -> Self
 	{
 		Self {
-			data: self.data.zip(rhs.data).map(|val| val.0 * val.1),
+			x: self.x * rhs.x,
+			y: self.y * rhs.y,
+			z: self.z * rhs.z,
+			w: self.w * rhs.w,
 		}
 	}
-}
-
-impl MulAssign for Vector
-{
-	#[inline(always)]
-	fn mul_assign(&mut self, rhs: Self) { *self = *self * rhs; }
 }
 
 impl Mul<f32> for Vector
@@ -106,29 +105,12 @@ impl Mul<f32> for Vector
 	fn mul(self, rhs: f32) -> Self
 	{
 		Self {
-			data: self.data.map(|val| val * rhs),
+			x: self.x * rhs,
+			y: self.y * rhs,
+			z: self.z * rhs,
+			w: self.w * rhs,
 		}
 	}
-}
-
-impl MulAssign<f32> for Vector
-{
-	#[inline(always)]
-	fn mul_assign(&mut self, rhs: f32) { *self = *self * rhs; }
-}
-
-impl Neg for Vector
-{
-	type Output = Self;
-
-	#[inline(always)]
-	fn neg(self) -> Self { Self::default() - self }
-}
-
-impl PartialEq for Vector
-{
-	#[inline(always)]
-	fn eq(&self, other: &Vector) -> bool { self.data == other.data }
 }
 
 impl Sub for Vector
@@ -139,66 +121,63 @@ impl Sub for Vector
 	fn sub(self, rhs: Self) -> Self
 	{
 		Self {
-			data: self.data.zip(rhs.data).map(|val| val.0 - val.1),
+			x: self.x - rhs.x,
+			y: self.y - rhs.y,
+			z: self.z - rhs.z,
+			w: self.w - rhs.w,
 		}
 	}
-}
-
-impl SubAssign for Vector
-{
-	#[inline(always)]
-	fn sub_assign(&mut self, rhs: Self) { *self = *self - rhs; }
 }
 
 impl Vector
 {
 	#[inline(always)]
 	/// Create a [`Vector`] from x, y, z, and w values.
-	pub fn new(x: f32, y: f32, z: f32, w: f32) -> Self { Self { data: [x, y, z, w] } }
+	pub fn new(x: f32, y: f32, z: f32, w: f32) -> Self { Self { x, y, z, w } }
 
 	#[inline(always)]
 	/// Get the x value of the [`Vector`].
-	pub fn x(self) -> f32 { self.data[0] }
+	pub fn x(self) -> f32 { self.x }
 
 	#[inline(always)]
 	/// Get the y value of the [`Vector`].
-	pub fn y(self) -> f32 { self.data[1] }
+	pub fn y(self) -> f32 { self.y }
 
 	#[inline(always)]
 	/// Get the z value of the [`Vector`].
-	pub fn z(self) -> f32 { self.data[2] }
+	pub fn z(self) -> f32 { self.z }
 
 	#[inline(always)]
 	/// Get the w value
-	pub fn w(self) -> f32 { self.data[3] }
+	pub fn w(self) -> f32 { self.w }
 
 	#[inline(always)]
 	/// Set the x value of the [`Vector`].
-	pub fn set_x(&mut self, val: f32) { self.data[0] = val }
+	pub fn set_x(&mut self, val: f32) { self.x = val }
 
 	#[inline(always)]
 	/// Set the y value of the [`Vector`].
-	pub fn set_y(&mut self, val: f32) { self.data[1] = val }
+	pub fn set_y(&mut self, val: f32) { self.y = val }
 
 	#[inline(always)]
 	/// Set the z value of the [`Vector`].
-	pub fn set_z(&mut self, val: f32) { self.data[2] = val }
+	pub fn set_z(&mut self, val: f32) { self.z = val }
 
 	#[inline(always)]
 	/// Set the w value of the [`Vector`].
-	pub fn set_w(&mut self, val: f32) { self.data[3] = val }
+	pub fn set_w(&mut self, val: f32) { self.w = val }
 
 	#[inline(always)]
 	/// Shuffles the components of a [`Vector`].
 	pub fn shuffle<const X: u32, const Y: u32, const Z: u32, const W: u32>(self) -> Self
 	{
+		let data = unsafe { from_raw_parts((&self as *const Vector) as *const f32, 4) };
+
 		Self {
-			data: [
-				self.data[X as usize],
-				self.data[Y as usize],
-				self.data[Z as usize],
-				self.data[W as usize],
-			],
+			x: data[X as usize],
+			y: data[Y as usize],
+			z: data[Z as usize],
+			w: data[W as usize],
 		}
 	}
 
@@ -208,51 +187,67 @@ impl Vector
 	pub fn shuffle_merge<const X: u32, const Y: u32, const Z: u32, const W: u32>(vec1: Vector, vec2: Vector) -> Self
 	where
 		[(); shuffle_args(X, Y, Z, W)]: Sized,
-		[(); _MM_SHUFFLE(W, Z, Y, X) as usize]: Sized,
 	{
+		let data = unsafe {
+			(
+				from_raw_parts((&vec1 as *const Vector) as *const f32, 4),
+				from_raw_parts((&vec2 as *const Vector) as *const f32, 4),
+			)
+		};
+
 		Self {
-			data: [
-				vec1.data[X as usize],
-				vec1.data[Y as usize],
-				vec2.data[Z as usize],
-				vec2.data[W as usize],
-			],
+			x: data.0[X as usize],
+			y: data.0[Y as usize],
+			z: data.1[Z as usize],
+			w: data.1[W as usize],
 		}
 	}
 
 	#[inline(always)]
 	/// Get an indexed value from the [`Vector`]. This is slow, don't use it unless you have to.
 	/// Panics if idx is not in the range [0, 3].
-	pub fn get(&self, idx: u8) -> f32 { self.data[idx as usize] }
+	pub fn get(self, idx: u8) -> f32
+	{
+		unsafe { from_raw_parts((&self as *const Vector) as *const f32, 4)[idx as usize] }
+	}
 
 	#[inline(always)]
 	/// Get a [`Vector`] containing the absolute values of x, y, z, and w.
 	pub fn abs(self) -> Self
 	{
 		Self {
-			data: self.data.map(|val| val.abs()),
+			x: self.x.abs(),
+			y: self.y.abs(),
+			z: self.z.abs(),
+			w: self.w.abs(),
 		}
 	}
 
 	#[inline(always)]
 	/// Get the four-dimensional horizontal-sum of a [`Vector`].
-	pub fn hsum(self) -> f32 { self.data[0] + self.data[1] + self.data[2] }
+	pub fn hsum(self) -> f32 { self.x + self.y + self.z + self.w }
 
 	#[inline(always)]
 	/// Get the component-wise minimums.
-	pub fn min(lhs: Vector, rhs: Vector) -> Vector
+	pub fn min(lhs: Self, rhs: Self) -> Self
 	{
-		Vector {
-			data: lhs.data.zip(rhs.data).map(|val| f32::min(val.0, val.1)),
+		Self {
+			x: f32::min(lhs.x, rhs.x),
+			y: f32::min(lhs.y, rhs.y),
+			z: f32::min(lhs.z, rhs.z),
+			w: f32::min(lhs.w, rhs.w),
 		}
 	}
 
 	#[inline(always)]
 	/// Get the component-wise maximums.
-	pub fn max(lhs: Vector, rhs: Vector) -> Vector
+	pub fn max(lhs: Self, rhs: Self) -> Self
 	{
-		Vector {
-			data: lhs.data.zip(rhs.data).map(|val| f32::max(val.0, val.1)),
+		Self {
+			x: f32::max(lhs.x, rhs.x),
+			y: f32::max(lhs.y, rhs.y),
+			z: f32::max(lhs.z, rhs.z),
+			w: f32::max(lhs.w, rhs.w),
 		}
 	}
 }

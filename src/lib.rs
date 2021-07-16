@@ -1,8 +1,6 @@
 // Warnings
 #![allow(incomplete_features)] // TODO: Remove once const_evaluatable_checked and const_generics are complete.
 // Features
-#![feature(array_map)]
-#![feature(array_zip)]
 #![feature(const_evaluatable_checked)]
 #![feature(const_generics)]
 #![feature(const_panic)]

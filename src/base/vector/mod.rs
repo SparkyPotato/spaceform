@@ -4,7 +4,7 @@
 mod x86;
 use std::{
 	fmt::{Debug, Display, Formatter, Result},
-	ops::{Mul, MulAssign},
+	ops::{AddAssign, DivAssign, Mul, MulAssign, Neg, SubAssign},
 };
 
 #[cfg(all(feature = "simd", any(target_arch = "x86", target_arch = "x86_64")))]
@@ -30,6 +30,12 @@ pub const fn shuffle_args(x: u32, y: u32, z: u32, w: u32) -> usize
 	}
 }
 
+impl AddAssign for Vector
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: Self) { *self = *self + rhs; }
+}
+
 impl Debug for Vector
 {
 	#[inline(always)]
@@ -48,6 +54,36 @@ impl Display for Vector
 	}
 }
 
+impl DivAssign for Vector
+{
+	#[inline(always)]
+	fn div_assign(&mut self, rhs: Self) { *self = *self / rhs; }
+}
+
+impl DivAssign<f32> for Vector
+{
+	#[inline(always)]
+	fn div_assign(&mut self, rhs: f32) { *self = *self / rhs; }
+}
+
+impl From<[f32; 4]> for Vector
+{
+	#[inline(always)]
+	fn from(val: [f32; 4]) -> Self { Vector::new(val[0], val[1], val[2], val[3]) }
+}
+
+impl MulAssign for Vector
+{
+	#[inline(always)]
+	fn mul_assign(&mut self, rhs: Self) { *self = *self * rhs; }
+}
+
+impl MulAssign<f32> for Vector
+{
+	#[inline(always)]
+	fn mul_assign(&mut self, rhs: f32) { *self = *self * rhs; }
+}
+
 impl Mul<Matrix> for Vector
 {
 	type Output = Self;
@@ -63,6 +99,26 @@ impl MulAssign<Matrix> for Vector
 {
 	#[inline(always)]
 	fn mul_assign(&mut self, rhs: Matrix) { *self = *self * rhs }
+}
+
+impl Neg for Vector
+{
+	type Output = Self;
+
+	#[inline(always)]
+	fn neg(self) -> Self { Self::default() - self }
+}
+
+impl SubAssign for Vector
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: Self) { *self = *self - rhs; }
+}
+
+impl Into<[f32; 4]> for Vector
+{
+	#[inline(always)]
+	fn into(self) -> [f32; 4] { [self.x(), self.y(), self.z(), self.w()] }
 }
 
 impl Vector

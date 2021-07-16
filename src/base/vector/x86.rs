@@ -5,7 +5,7 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 use core::{f32, panic};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, Div, Mul, Sub};
 
 use super::shuffle_args;
 
@@ -28,12 +28,6 @@ impl Add for Vector
 			data: unsafe { _mm_add_ps(self.data, rhs.data) },
 		}
 	}
-}
-
-impl AddAssign for Vector
-{
-	#[inline(always)]
-	fn add_assign(&mut self, rhs: Self) { *self = *self + rhs; }
 }
 
 impl Default for Vector
@@ -60,12 +54,6 @@ impl Div for Vector
 	}
 }
 
-impl DivAssign for Vector
-{
-	#[inline(always)]
-	fn div_assign(&mut self, rhs: Self) { *self = *self / rhs; }
-}
-
 impl Div<f32> for Vector
 {
 	type Output = Self;
@@ -77,18 +65,6 @@ impl Div<f32> for Vector
 			data: unsafe { _mm_div_ps(self.data, _mm_set1_ps(rhs)) },
 		}
 	}
-}
-
-impl DivAssign<f32> for Vector
-{
-	#[inline(always)]
-	fn div_assign(&mut self, rhs: f32) { *self = *self / rhs; }
-}
-
-impl From<[f32; 4]> for Vector
-{
-	#[inline(always)]
-	fn from(val: [f32; 4]) -> Self { Vector::new(val[0], val[1], val[2], val[3]) }
 }
 
 impl Mul for Vector
@@ -104,12 +80,6 @@ impl Mul for Vector
 	}
 }
 
-impl MulAssign for Vector
-{
-	#[inline(always)]
-	fn mul_assign(&mut self, rhs: Self) { *self = *self * rhs; }
-}
-
 impl Mul<f32> for Vector
 {
 	type Output = Self;
@@ -121,20 +91,6 @@ impl Mul<f32> for Vector
 			data: unsafe { _mm_mul_ps(self.data, _mm_set1_ps(rhs)) },
 		}
 	}
-}
-
-impl MulAssign<f32> for Vector
-{
-	#[inline(always)]
-	fn mul_assign(&mut self, rhs: f32) { *self = *self * rhs; }
-}
-
-impl Neg for Vector
-{
-	type Output = Self;
-
-	#[inline(always)]
-	fn neg(self) -> Self { Self::default() - self }
 }
 
 impl PartialEq for Vector
@@ -160,17 +116,6 @@ impl Sub for Vector
 			data: unsafe { _mm_sub_ps(self.data, rhs.data) },
 		}
 	}
-}
-
-impl SubAssign for Vector
-{
-	#[inline(always)]
-	fn sub_assign(&mut self, rhs: Self) { *self = *self - rhs; }
-}
-
-impl Into<[f32; 4]> for Vector
-{
-	fn into(self) -> [f32; 4] { [self.x(), self.y(), self.z(), self.w()] }
 }
 
 impl Vector
@@ -245,7 +190,7 @@ impl Vector
 	#[inline(always)]
 	/// Get an indexed value from the [`Vector`]. This is slow, don't use it unless you have to.
 	/// Panics if idx is not in the range [0, 3].
-	pub fn get(&self, idx: u8) -> f32
+	pub fn get(self, idx: u8) -> f32
 	{
 		match idx
 		{
@@ -308,7 +253,7 @@ impl Vector
 
 	#[inline(always)]
 	/// Get the component-wise minimums.
-	pub fn min(lhs: Vector, rhs: Vector) -> Vector
+	pub fn min(lhs: Self, rhs: Self) -> Self
 	{
 		Vector {
 			data: unsafe { _mm_min_ps(lhs.data, rhs.data) },
@@ -317,7 +262,7 @@ impl Vector
 
 	#[inline(always)]
 	/// Get the component-wise maximums.
-	pub fn max(lhs: Vector, rhs: Vector) -> Vector
+	pub fn max(lhs: Self, rhs: Self) -> Self
 	{
 		Vector {
 			data: unsafe { _mm_max_ps(lhs.data, rhs.data) },

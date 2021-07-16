@@ -106,10 +106,10 @@ impl Matrix
 
 		Self {
 			rows: [
-				Vector::shuffle_merge::<0, 2, 0, 2>(temp[0], temp[1]),
-				Vector::shuffle_merge::<1, 3, 1, 3>(temp[0], temp[1]),
-				Vector::shuffle_merge::<0, 2, 0, 2>(temp[2], temp[3]),
-				Vector::shuffle_merge::<1, 3, 1, 3>(temp[2], temp[3]),
+				Vector::shuffle_merge::<0, 2, 0, 2>(temp[0], temp[2]),
+				Vector::shuffle_merge::<1, 3, 1, 3>(temp[0], temp[2]),
+				Vector::shuffle_merge::<0, 2, 0, 2>(temp[1], temp[3]),
+				Vector::shuffle_merge::<1, 3, 1, 3>(temp[1], temp[3]),
 			],
 		}
 	}

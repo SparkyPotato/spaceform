@@ -64,10 +64,10 @@ impl Mul for Matrix
 		let mut rows = [Vector::default(); 4];
 		for i in 0..4
 		{
-			rows[i] = rhs.rows[0] * self.rows[i].x()
-				+ rhs.rows[1] * self.rows[i].y()
-				+ rhs.rows[2] * self.rows[i].z()
-				+ rhs.rows[3] * self.rows[i].w()
+			rows[i] = rhs.rows[0] * self.rows[i].shuffle::<0, 0, 0, 0>()
+				+ rhs.rows[1] * self.rows[i].shuffle::<1, 1, 1, 1>()
+				+ rhs.rows[2] * self.rows[i].shuffle::<2, 2, 2, 2>()
+				+ rhs.rows[3] * self.rows[i].shuffle::<3, 3, 3, 3>()
 		}
 
 		Self { rows }

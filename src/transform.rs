@@ -11,6 +11,7 @@ use crate::{
 	Rotation,
 };
 
+#[repr(C)]
 #[derive(Clone, Copy)]
 /// An affine transformation that can be applied to [`crate::Point`]s, [`Direction`]s, and [`crate::Normal`]s.
 pub struct Transform

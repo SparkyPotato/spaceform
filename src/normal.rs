@@ -16,6 +16,7 @@ use crate::{
 	transform::Transform,
 };
 
+#[repr(transparent)]
 #[derive(Copy, Clone, PartialEq)]
 /// A surface normal. Mostly the same as [`Direction`]. May NOT be normalized.
 pub struct Normal(pub(crate) Vector);

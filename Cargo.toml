@@ -4,9 +4,11 @@ version = "0.0.1"
 authors = ["Shaye Garg <shaye.garg@gmail.com>"]
 license = "Apache-2.0"
 description = "A cross-platform SIMD-accelerated maths library for 3D graphics"
+homepage = "https://github.com/SparkyPotato/spaceform"
 repository = "https://github.com/SparkyPotato/spaceform"
 readme = "README.md"
 edition = "2018"
+keywords = ["gamedev", "math", "simd", "linear-algebra", "quaternion"]
 
 [dev-dependencies]
 criterion = "0.3"

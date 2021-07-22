@@ -15,6 +15,7 @@ use crate::{
 	transform::Transform,
 };
 
+#[repr(transparent)]
 #[derive(Copy, Clone, PartialEq)]
 /// A direction in 3D space, with a W coordinate of 0.
 pub struct Direction(pub(crate) Vector);

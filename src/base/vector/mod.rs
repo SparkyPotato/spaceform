@@ -91,7 +91,10 @@ impl Mul<Matrix> for Vector
 	#[inline(always)]
 	fn mul(self, rhs: Matrix) -> Self::Output
 	{
-		rhs.get_row(0) * self.x() + rhs.get_row(1) * self.y() + rhs.get_row(2) * self.z() + rhs.get_row(3) * self.w()
+		rhs.get_row(0) * self.shuffle::<0, 0, 0, 0>()
+			+ rhs.get_row(1) * self.shuffle::<1, 1, 1, 1>()
+			+ rhs.get_row(2) * self.shuffle::<2, 2, 2, 2>()
+			+ rhs.get_row(3) * self.shuffle::<3, 3, 3, 3>()
 	}
 }
 

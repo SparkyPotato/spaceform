@@ -8,6 +8,7 @@ use std::{
 use super::Vector;
 use crate::base::nearly_equal;
 
+#[repr(transparent)]
 #[derive(Copy, Clone, PartialEq)]
 /// A quaternion.
 pub struct Quaternion(pub(crate) Vector);
@@ -65,21 +66,25 @@ impl Mul for Quaternion
 	#[inline(always)]
 	fn mul(self, rhs: Self) -> Self
 	{
-		// https://stackoverflow.com/q/18542894/14888326
+		// LLVM auto-vectorization seems to work pretty well here.
+		// However, it doesn't work in scalar mode, so the fact that everything is nicely in one register seems to be
+		// quite important.
 
-		let wzyx = self.0.shuffle::<3, 2, 1, 0>();
-		let baba = rhs.0.shuffle::<1, 0, 1, 0>();
-		let dcdc = rhs.0.shuffle::<3, 2, 3, 2>();
+		let l_x = self.x();
+		let l_y = self.y();
+		let l_z = self.z();
+		let l_w = self.w();
+		let r_x = rhs.x();
+		let r_y = rhs.y();
+		let r_z = rhs.z();
+		let r_w = rhs.w();
 
-		let z_xwy = Vector::adj_sub(self.0 * baba, wzyx * dcdc);
-		let xzy_w = Vector::adj_add(self.0 * dcdc, wzyx * baba);
-
-		let xzwy = Vector::add_sub(
-			Vector::shuffle_merge::<0, 1, 2, 3>(xzy_w, z_xwy),
-			Vector::shuffle_merge::<1, 0, 3, 2>(z_xwy, xzy_w),
-		);
-
-		Self(xzwy.shuffle::<0, 3, 1, 2>())
+		Self(Vector::new(
+			l_w * r_x + l_x * r_w + l_y * r_z - l_z * r_y,
+			l_w * r_y + l_y * r_w + l_z * r_x - l_x * r_z,
+			l_w * r_z + l_z * r_w + l_x * r_y - l_y * r_x,
+			l_w * r_w - l_x * r_x - l_y * l_y - l_z * r_z,
+		))
 	}
 }
 
@@ -169,8 +174,8 @@ impl Quaternion
 	/// If either `from` or `to` is not normalized.
 	pub fn slerp(from: Quaternion, to: Quaternion, t: f32) -> Quaternion
 	{
-		assert!(nearly_equal(Self::dot(from, from), 1f32, 0.0001f32));
-		assert!(nearly_equal(Self::dot(to, to), 1f32, 0.0001f32));
+		debug_assert!(nearly_equal(Self::dot(from, from), 1f32, 0.0001f32));
+		debug_assert!(nearly_equal(Self::dot(to, to), 1f32, 0.0001f32));
 
 		let cos = Self::dot(from, to);
 		if cos > 0.9995f32

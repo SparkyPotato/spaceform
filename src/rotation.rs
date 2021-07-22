@@ -1,6 +1,6 @@
 //! Rotations.
 
-use crate::{base::Quaternion, coordinate_system::CoordinateSystem, Direction};
+use crate::{base::Quaternion, coordinate_system::CoordinateSystem};
 
 /// The order to apply euler rotations in.
 pub enum RotationOrder
@@ -32,12 +32,14 @@ pub struct EulerAngles
 	pub order: RotationOrder,
 }
 
+#[repr(transparent)]
 #[derive(Copy, Clone, PartialEq)]
 /// A rotation in 3D space.
 pub struct Rotation(pub(crate) Quaternion);
 
 impl Rotation
 {
+	#[inline(always)]
 	/// Create a [`Rotation`] from [`EulerAngles`].  
 	/// `system` is the [`CoordinateSystem`] to use to decipher what `angles` mean.
 	pub fn euler(angles: EulerAngles, system: CoordinateSystem) -> Self

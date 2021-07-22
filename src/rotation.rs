@@ -1,6 +1,6 @@
 //! Rotations.
 
-use crate::{base::Quaternion, coordinate_system::AxisMapping, Direction};
+use crate::{base::Quaternion, coordinate_system::CoordinateSystem, Direction};
 
 /// The order to apply euler rotations in.
 pub enum RotationOrder
@@ -38,8 +38,9 @@ pub struct Rotation(pub(crate) Quaternion);
 
 impl Rotation
 {
-	/// Create a [`Rotation`] from [`EulerAngles`].
-	pub fn euler(angles: EulerAngles, mapping: AxisMapping) -> Self
+	/// Create a [`Rotation`] from [`EulerAngles`].  
+	/// `system` is the [`CoordinateSystem`] to use to decipher what `angles` mean.
+	pub fn euler(angles: EulerAngles, system: CoordinateSystem) -> Self
 	{
 		let sin_pitch = (angles.pitch / 2f32).sin();
 		let cos_pitch = (angles.pitch / 2f32).cos();
@@ -48,9 +49,9 @@ impl Rotation
 		let sin_roll = (angles.roll / 2f32).sin();
 		let cos_roll = (angles.roll / 2f32).cos();
 
-		let right: Direction = mapping.right.into();
-		let forward: Direction = mapping.forward.into();
-		let up: Direction = mapping.up.into();
+		let right = system.right;
+		let forward = system.forward;
+		let up = system.up;
 
 		let mut pitch = Quaternion(right.0 * sin_pitch);
 		pitch.set_w(cos_pitch);

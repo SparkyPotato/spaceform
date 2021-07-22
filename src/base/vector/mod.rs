@@ -173,6 +173,11 @@ mod tests
 		assert_eq!(vec.y(), 2f32);
 		assert_eq!(vec.z(), 3f32);
 		assert_eq!(vec.w(), 4f32);
+
+		assert_eq!(vec.get(0), 1f32);
+		assert_eq!(vec.get(1), 2f32);
+		assert_eq!(vec.get(2), 3f32);
+		assert_eq!(vec.get(3), 4f32);
 	}
 
 	#[test]
@@ -317,5 +322,24 @@ mod tests
 
 		assert_eq!(Vector::min(vec1, vec2), Vector::new(1f32, 2f32, 2f32, 1f32));
 		assert_eq!(Vector::max(vec1, vec2), Vector::new(4f32, 3f32, 3f32, 4f32));
+	}
+
+	#[test]
+	fn adj_add_and_sub()
+	{
+		let vec1 = Vector::new(1f32, 2f32, 3f32, 4f32);
+		let vec2 = Vector::new(4f32, 3f32, 2f32, 1f32);
+
+		assert_eq!(Vector::adj_add(vec1, vec2), Vector::new(3f32, 7f32, 7f32, 3f32));
+		assert_eq!(Vector::adj_sub(vec1, vec2), Vector::new(-1f32, -1f32, 1f32, 1f32));
+	}
+
+	#[test]
+	fn add_sub()
+	{
+		let vec1 = Vector::new(1f32, 2f32, 3f32, 4f32);
+		let vec2 = Vector::new(4f32, 3f32, 2f32, 1f32);
+
+		assert_eq!(Vector::add_sub(vec1, vec2), Vector::new(-3f32, 5f32, 1f32, 5f32));
 	}
 }

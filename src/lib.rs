@@ -17,3 +17,11 @@ pub mod coordinate_system;
 pub mod direction;
 pub mod normal;
 pub mod point;
+pub mod rotation;
+pub mod transform;
+
+pub use direction::Direction;
+pub use normal::Normal;
+pub use point::Point;
+pub use rotation::{EulerAngles, Rotation, RotationOrder};
+pub use transform::Transform;

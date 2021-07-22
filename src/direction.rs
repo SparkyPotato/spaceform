@@ -11,8 +11,8 @@ use std::{
 
 use crate::{
 	base::{shuffle_args, Vector},
-	coordinate_system::CoordinateSystem,
 	normal::Normal,
+	transform::Transform,
 };
 
 #[derive(Copy, Clone, PartialEq)]
@@ -85,10 +85,24 @@ impl Mul<f32> for Direction
 	fn mul(self, rhs: f32) -> Self::Output { Self(self.0 * rhs) }
 }
 
+impl Mul<Transform> for Direction
+{
+	type Output = Self;
+
+	#[inline(always)]
+	fn mul(self, rhs: Transform) -> Self::Output { Self(self.0 * rhs.matrix) }
+}
+
 impl MulAssign<f32> for Direction
 {
 	#[inline(always)]
 	fn mul_assign(&mut self, rhs: f32) { *self = *self * rhs }
+}
+
+impl MulAssign<Transform> for Direction
+{
+	#[inline(always)]
+	fn mul_assign(&mut self, rhs: Transform) { *self = *self * rhs }
 }
 
 impl Neg for Direction
@@ -163,24 +177,6 @@ impl Direction
 		[(); _MM_SHUFFLE(3, Z, Y, X) as usize]: Sized,
 	{
 		Self(self.0.shuffle::<X, Y, Z, 3>())
-	}
-
-	#[inline(always)]
-	/// Transform to the coordinate system.
-	pub fn transform_to(self, system: &CoordinateSystem) -> Direction
-	{
-		Self::new(
-			Self::dot(self, system.x),
-			Self::dot(self, system.y),
-			Self::dot(self, system.z),
-		)
-	}
-
-	#[inline(always)]
-	/// Transform from the coordinate system.
-	pub fn transform_from(self, system: &CoordinateSystem) -> Direction
-	{
-		system.x * self.x() + system.y * self.y() + system.z * self.z()
 	}
 
 	#[inline(always)]

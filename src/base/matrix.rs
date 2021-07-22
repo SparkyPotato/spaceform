@@ -1,7 +1,8 @@
 //! SIMD Matrices.
 
+use core::f32;
 use std::{
-	fmt::{Debug, Formatter, Result},
+	fmt::{Debug, Display, Formatter, Result},
 	ops::{Mul, MulAssign},
 };
 
@@ -35,6 +36,22 @@ impl Default for Matrix
 {
 	#[inline(always)]
 	fn default() -> Self { Matrix::identity() }
+}
+
+impl Display for Matrix
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter<'_>) -> Result
+	{
+		write!(
+			f,
+			"{}, {}, {}, {}",
+			self.get_row(0),
+			self.get_row(1),
+			self.get_row(2),
+			self.get_row(3)
+		)
+	}
 }
 
 impl Mul for Matrix
@@ -80,6 +97,10 @@ impl Matrix
 	}
 
 	#[inline(always)]
+	/// Create a [`Matrix`] from 16 elements.
+	pub fn row_vectors(rows: [Vector; 4]) -> Self { Self { rows } }
+
+	#[inline(always)]
 	/// Create an identity [`Matrix`].
 	pub fn identity() -> Self
 	{
@@ -112,6 +133,36 @@ impl Matrix
 				Vector::shuffle_merge::<1, 3, 1, 3>(temp[1], temp[3]),
 			],
 		}
+	}
+
+	#[inline(always)]
+	/// Calculate the determinant of the [`Matrix`].
+	/// Is quite slow, don't use it much.
+	pub fn det(&self) -> f32
+	{
+		// https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
+
+		let a = Vector::shuffle_merge::<0, 1, 0, 1>(self.rows[0], self.rows[1]);
+		let c = Vector::shuffle_merge::<2, 3, 2, 3>(self.rows[0], self.rows[1]);
+		let b = Vector::shuffle_merge::<0, 1, 0, 1>(self.rows[2], self.rows[3]);
+		let d = Vector::shuffle_merge::<2, 3, 2, 3>(self.rows[2], self.rows[3]);
+
+		let det_sub = Vector::shuffle_merge::<0, 2, 0, 2>(self.rows[0], self.rows[2])
+			* Vector::shuffle_merge::<1, 3, 1, 3>(self.rows[1], self.rows[3])
+			- Vector::shuffle_merge::<1, 3, 1, 3>(self.rows[0], self.rows[2])
+				* Vector::shuffle_merge::<0, 2, 0, 2>(self.rows[1], self.rows[3]);
+		//  ^^^^ rustfmt what?
+		let det_a = det_sub.shuffle::<0, 0, 0, 0>();
+		let det_c = det_sub.shuffle::<1, 1, 1, 1>();
+		let det_b = det_sub.shuffle::<2, 2, 2, 2>();
+		let det_d = det_sub.shuffle::<3, 3, 3, 3>();
+
+		let d_c = mat2_adj_mul(d, c);
+		let a_b = mat2_adj_mul(a, b);
+
+		let tr = a_b * d_c.shuffle::<0, 2, 1, 3>();
+		let tr = tr.hsum();
+		((det_a * det_d + det_b * det_c) - Vector::new(tr, tr, tr, tr)).x()
 	}
 
 	#[inline(always)]

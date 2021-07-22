@@ -208,6 +208,7 @@ impl Vector
 	/// Panics if idx is not in the range [0, 3].
 	pub fn get(self, idx: u8) -> f32
 	{
+		assert!(idx < 4, "Indexed out of Vector bounds");
 		unsafe { from_raw_parts((&self as *const Vector) as *const f32, 4)[idx as usize] }
 	}
 
@@ -248,6 +249,48 @@ impl Vector
 			y: f32::max(lhs.y, rhs.y),
 			z: f32::max(lhs.z, rhs.z),
 			w: f32::max(lhs.w, rhs.w),
+		}
+	}
+
+	#[inline(always)]
+	/// x: `lhs`.x + `lhs`.y.  
+	/// y: `lhs`.z + `lhs`.w.  
+	/// z: `rhs`.x + `rhs`.y.  
+	/// w: `rhs`.z + `rhs`.w.  
+	pub fn adj_add(lhs: Self, rhs: Self) -> Self
+	{
+		Self {
+			x: lhs.x + lhs.y,
+			y: lhs.z + lhs.w,
+			z: rhs.x + rhs.y,
+			w: rhs.z + rhs.w,
+		}
+	}
+
+	#[inline(always)]
+	/// x: `lhs`.x - `lhs`.y.  
+	/// y: `lhs`.z - `lhs`.w.  
+	/// z: `rhs`.x - `rhs`.y.  
+	/// w: `rhs`.z - `rhs`.w.  
+	pub fn adj_sub(lhs: Self, rhs: Self) -> Self
+	{
+		Self {
+			x: lhs.x - lhs.y,
+			y: lhs.z - lhs.w,
+			z: rhs.x - rhs.y,
+			w: rhs.z - rhs.w,
+		}
+	}
+
+	#[inline(always)]
+	/// Subtract and add alternate elements.
+	pub fn add_sub(lhs: Self, rhs: Self) -> Self
+	{
+		Self {
+			x: lhs.x - rhs.x,
+			y: lhs.y + rhs.y,
+			z: lhs.z - rhs.z,
+			w: lhs.w + rhs.w,
 		}
 	}
 }

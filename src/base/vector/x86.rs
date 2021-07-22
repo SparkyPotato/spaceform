@@ -5,7 +5,10 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 use core::{f32, panic};
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+	ops::{Add, Div, Mul, Sub},
+	slice::from_raw_parts,
+};
 
 use super::shuffle_args;
 
@@ -192,14 +195,8 @@ impl Vector
 	/// Panics if idx is not in the range [0, 3].
 	pub fn get(self, idx: u8) -> f32
 	{
-		match idx
-		{
-			0 => self.x(),
-			1 => self.y(),
-			2 => self.z(),
-			3 => self.w(),
-			_ => panic!("Indexed out of Vector bounds"),
-		}
+		assert!(idx < 4, "Indexed out of Vector bounds");
+		unsafe { from_raw_parts((&self as *const Vector) as *const f32, 4)[idx as usize] }
 	}
 
 	#[inline(always)]
@@ -255,7 +252,7 @@ impl Vector
 	/// Get the component-wise minimums.
 	pub fn min(lhs: Self, rhs: Self) -> Self
 	{
-		Vector {
+		Self {
 			data: unsafe { _mm_min_ps(lhs.data, rhs.data) },
 		}
 	}
@@ -264,8 +261,41 @@ impl Vector
 	/// Get the component-wise maximums.
 	pub fn max(lhs: Self, rhs: Self) -> Self
 	{
-		Vector {
+		Self {
 			data: unsafe { _mm_max_ps(lhs.data, rhs.data) },
+		}
+	}
+
+	#[inline(always)]
+	/// x: `lhs`.x + `lhs`.y.  
+	/// y: `lhs`.z + `lhs`.w.  
+	/// z: `rhs`.x + `rhs`.y.  
+	/// w: `rhs`.z + `rhs`.w.  
+	pub fn adj_add(lhs: Self, rhs: Self) -> Self
+	{
+		Self {
+			data: unsafe { _mm_hadd_ps(lhs.data, rhs.data) },
+		}
+	}
+
+	#[inline(always)]
+	/// x: `lhs`.x - `lhs`.y.  
+	/// y: `lhs`.z - `lhs`.w.  
+	/// z: `rhs`.x - `rhs`.y.  
+	/// w: `rhs`.z - `rhs`.w.  
+	pub fn adj_sub(lhs: Self, rhs: Self) -> Self
+	{
+		Self {
+			data: unsafe { _mm_hsub_ps(lhs.data, rhs.data) },
+		}
+	}
+
+	#[inline(always)]
+	/// Subtract and add alternate elements.
+	pub fn add_sub(lhs: Self, rhs: Self) -> Self
+	{
+		Self {
+			data: unsafe { _mm_addsub_ps(lhs.data, rhs.data) },
 		}
 	}
 }

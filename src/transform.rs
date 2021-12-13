@@ -14,37 +14,31 @@ use crate::{
 #[repr(C)]
 #[derive(Clone, Copy)]
 /// An affine transformation that can be applied to [`crate::Point`]s, [`Direction`]s, and [`crate::Normal`]s.
-pub struct Transform
-{
+pub struct Transform {
 	pub(crate) matrix: Matrix,
 	pub(crate) inverse: Matrix,
 }
 
-impl Debug for Transform
-{
+impl Debug for Transform {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter<'_>) -> Result { write!(f, "{}", self.matrix) }
 }
 
-impl Default for Transform
-{
+impl Default for Transform {
 	#[inline(always)]
 	fn default() -> Self { Self::identity() }
 }
 
-impl Display for Transform
-{
+impl Display for Transform {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter<'_>) -> Result { write!(f, "{}", self.matrix) }
 }
 
-impl Mul for Transform
-{
+impl Mul for Transform {
 	type Output = Self;
 
 	#[inline(always)]
-	fn mul(self, rhs: Self) -> Self
-	{
+	fn mul(self, rhs: Self) -> Self {
 		Self {
 			matrix: self.matrix * rhs.matrix,
 			inverse: rhs.inverse * self.inverse,
@@ -52,18 +46,15 @@ impl Mul for Transform
 	}
 }
 
-impl MulAssign for Transform
-{
+impl MulAssign for Transform {
 	#[inline(always)]
 	fn mul_assign(&mut self, rhs: Self) { *self = *self * rhs }
 }
 
-impl Transform
-{
+impl Transform {
 	#[inline(always)]
 	/// Get the identity [`Transform`] that leaves everything unchanged.
-	pub fn identity() -> Self
-	{
+	pub fn identity() -> Self {
 		Self {
 			matrix: Matrix::identity(),
 			inverse: Matrix::identity(),
@@ -72,8 +63,7 @@ impl Transform
 
 	#[inline(always)]
 	/// Get a translation [`Transform`].
-	pub fn translate(dir: Direction) -> Transform
-	{
+	pub fn translate(dir: Direction) -> Transform {
 		Self {
 			matrix: Matrix::row_vectors([
 				Vector::new(1f32, 0f32, 0f32, 0f32),
@@ -92,8 +82,7 @@ impl Transform
 
 	#[inline(always)]
 	/// Get a scaling [`Transform`].
-	pub fn scale(scale: Direction) -> Transform
-	{
+	pub fn scale(scale: Direction) -> Transform {
 		let inv = Vector::new(1f32, 1f32, 1f32, 1f32) / scale.0;
 
 		Self {
@@ -114,8 +103,7 @@ impl Transform
 
 	#[inline(always)]
 	/// Get a rotation [`Transform`].
-	pub fn rotate(rotation: Rotation) -> Transform
-	{
+	pub fn rotate(rotation: Rotation) -> Transform {
 		let x = rotation.0.x();
 		let y = rotation.0.y();
 		let z = rotation.0.z();
@@ -152,8 +140,7 @@ impl Transform
 	#[inline(always)]
 	/// Get the inverse of the [`Transform`].
 	/// Is quite fast (faster than [`Matrix::inverse`]).
-	pub fn inverse(&self) -> Self
-	{
+	pub fn inverse(&self) -> Self {
 		Self {
 			matrix: self.inverse,
 			inverse: self.matrix,
@@ -162,15 +149,13 @@ impl Transform
 }
 
 #[cfg(test)]
-mod tests
-{
+mod tests {
 
 	use super::*;
 	use crate::{Direction, Point};
 
 	#[test]
-	fn translation()
-	{
+	fn translation() {
 		let point = Point::new(0f32, 0f32, 0f32);
 
 		assert_eq!(
@@ -184,8 +169,7 @@ mod tests
 	}
 
 	#[test]
-	fn scale()
-	{
+	fn scale() {
 		let point = Point::new(1f32, 1f32, 1f32);
 
 		assert_eq!(

@@ -13,8 +13,6 @@ keywords = ["gamedev", "math", "simd", "linear-algebra", "quaternion"]
 [dev-dependencies]
 criterion = "0.3"
 
-[dependencies]
-
 [features]
 default = ["simd"]
 simd = []

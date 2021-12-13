@@ -1,12 +1,12 @@
 //! SIMD row vectors.
 
-#[cfg(all(feature = "simd", any(target_arch = "x86", target_arch = "x86_64")))]
-mod x86;
 use std::{
 	fmt::{Debug, Display, Formatter, Result},
 	ops::{AddAssign, DivAssign, Mul, MulAssign, Neg, SubAssign},
 };
 
+#[cfg(all(feature = "simd", any(target_arch = "x86", target_arch = "x86_64")))]
+mod x86;
 #[cfg(all(feature = "simd", any(target_arch = "x86", target_arch = "x86_64")))]
 pub use x86::*;
 
@@ -17,80 +17,55 @@ pub use scalar::*;
 
 use crate::base::Matrix;
 
-/// Function that restricts the input arguments to `shuffle` at compile time.
-pub const fn shuffle_args(x: u32, y: u32, z: u32, w: u32) -> usize
-{
-	if x < 4 && y < 4 && z < 4 && w < 4
-	{
-		1
-	}
-	else
-	{
-		panic!("Shuffle arguments must be in the range [0, 3]")
-	}
-}
-
-impl AddAssign for Vector
-{
+impl AddAssign for Vector {
 	#[inline(always)]
 	fn add_assign(&mut self, rhs: Self) { *self = *self + rhs; }
 }
 
-impl Debug for Vector
-{
+impl Debug for Vector {
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter<'_>) -> Result
-	{
+	fn fmt(&self, f: &mut Formatter<'_>) -> Result {
 		write!(f, "[{}, {}, {}, {}]", self.x(), self.y(), self.z(), self.w())
 	}
 }
 
-impl Display for Vector
-{
+impl Display for Vector {
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter<'_>) -> Result
-	{
+	fn fmt(&self, f: &mut Formatter<'_>) -> Result {
 		write!(f, "[{}, {}, {}, {}]", self.x(), self.y(), self.z(), self.w())
 	}
 }
 
-impl DivAssign for Vector
-{
+impl DivAssign for Vector {
 	#[inline(always)]
 	fn div_assign(&mut self, rhs: Self) { *self = *self / rhs; }
 }
 
-impl DivAssign<f32> for Vector
-{
+impl DivAssign<f32> for Vector {
 	#[inline(always)]
 	fn div_assign(&mut self, rhs: f32) { *self = *self / rhs; }
 }
 
-impl From<[f32; 4]> for Vector
-{
+impl From<[f32; 4]> for Vector {
 	#[inline(always)]
 	fn from(val: [f32; 4]) -> Self { Vector::new(val[0], val[1], val[2], val[3]) }
 }
 
-impl MulAssign for Vector
-{
+impl MulAssign for Vector {
 	#[inline(always)]
 	fn mul_assign(&mut self, rhs: Self) { *self = *self * rhs; }
 }
 
-impl MulAssign<f32> for Vector
-{
+impl MulAssign<f32> for Vector {
 	#[inline(always)]
 	fn mul_assign(&mut self, rhs: f32) { *self = *self * rhs; }
 }
 
-impl Mul<Matrix> for Vector
-{
+impl Mul<Matrix> for Vector {
 	type Output = Self;
 
 	#[inline(always)]
-	fn mul(self, rhs: Matrix) -> Self::Output
-	{
+	fn mul(self, rhs: Matrix) -> Self::Output {
 		rhs.get_row(0) * self.shuffle::<0, 0, 0, 0>()
 			+ rhs.get_row(1) * self.shuffle::<1, 1, 1, 1>()
 			+ rhs.get_row(2) * self.shuffle::<2, 2, 2, 2>()
@@ -98,34 +73,29 @@ impl Mul<Matrix> for Vector
 	}
 }
 
-impl MulAssign<Matrix> for Vector
-{
+impl MulAssign<Matrix> for Vector {
 	#[inline(always)]
 	fn mul_assign(&mut self, rhs: Matrix) { *self = *self * rhs }
 }
 
-impl Neg for Vector
-{
+impl Neg for Vector {
 	type Output = Self;
 
 	#[inline(always)]
 	fn neg(self) -> Self { Self::default() - self }
 }
 
-impl SubAssign for Vector
-{
+impl SubAssign for Vector {
 	#[inline(always)]
 	fn sub_assign(&mut self, rhs: Self) { *self = *self - rhs; }
 }
 
-impl Into<[f32; 4]> for Vector
-{
+impl Into<[f32; 4]> for Vector {
 	#[inline(always)]
 	fn into(self) -> [f32; 4] { [self.x(), self.y(), self.z(), self.w()] }
 }
 
-impl Vector
-{
+impl Vector {
 	#[inline(always)]
 	/// Get the square of the four-dimensional length of the [`Vector`].
 	pub fn length_square(self) -> f32 { Self::dot(self, self) }
@@ -144,16 +114,14 @@ impl Vector
 
 	#[inline(always)]
 	/// Get the three-dimensional cross product of two [`Vector`]s.
-	pub fn cross(lhs: Vector, rhs: Vector) -> Vector
-	{
+	pub fn cross(lhs: Vector, rhs: Vector) -> Vector {
 		let temp = lhs.shuffle::<1, 2, 0, 3>();
 		temp * rhs.shuffle::<2, 0, 1, 3>() - (temp * rhs).shuffle::<1, 2, 0, 3>()
 	}
 
 	#[inline(always)]
 	/// Clamp `val` between `min_val` and `max_val`.
-	pub fn clamp(val: Vector, min_val: Vector, max_val: Vector) -> Vector
-	{
+	pub fn clamp(val: Vector, min_val: Vector, max_val: Vector) -> Vector {
 		Vector::min(Vector::max(val, min_val), max_val)
 	}
 
@@ -163,13 +131,11 @@ impl Vector
 }
 
 #[cfg(test)]
-mod tests
-{
+mod tests {
 	use super::*;
 
 	#[test]
-	fn getters()
-	{
+	fn getters() {
 		let vec = Vector::new(1f32, 2f32, 3f32, 4f32);
 
 		assert_eq!(vec.x(), 1f32);
@@ -184,8 +150,7 @@ mod tests
 	}
 
 	#[test]
-	fn setters()
-	{
+	fn setters() {
 		let mut vec = Vector::default();
 
 		vec.set_x(1f32);
@@ -197,16 +162,14 @@ mod tests
 	}
 
 	#[test]
-	fn add()
-	{
+	fn add() {
 		let vec = Vector::new(1f32, 2f32, 3f32, 4f32);
 
 		assert_eq!(vec + vec, Vector::new(2f32, 4f32, 6f32, 8f32));
 	}
 
 	#[test]
-	fn subtract()
-	{
+	fn subtract() {
 		let vec = Vector::new(1f32, 2f32, 3f32, 4f32);
 
 		assert_eq!(vec - vec, Vector::default());
@@ -214,8 +177,7 @@ mod tests
 	}
 
 	#[test]
-	fn multiply()
-	{
+	fn multiply() {
 		let vec = Vector::new(1f32, 2f32, 3f32, 4f32);
 		let mat = Matrix::rows([
 			[1f32, 2f32, 3f32, 4f32],
@@ -230,8 +192,7 @@ mod tests
 	}
 
 	#[test]
-	fn divide()
-	{
+	fn divide() {
 		let vec = Vector::new(2f32, 4f32, 6f32, 8f32);
 
 		assert_eq!(vec / 2f32, Vector::new(1f32, 2f32, 3f32, 4f32));
@@ -239,8 +200,7 @@ mod tests
 	}
 
 	#[test]
-	fn equality()
-	{
+	fn equality() {
 		let vec1 = Vector::new(1f32, 2f32, 3f32, 4f32);
 		let vec2 = Vector::new(1f32, 2f32, 3f32, 4f32);
 
@@ -248,8 +208,7 @@ mod tests
 	}
 
 	#[test]
-	fn index()
-	{
+	fn index() {
 		let vec = Vector::new(1f32, 2f32, 3f32, 4f32);
 
 		assert_eq!(vec.get(0), vec.x());
@@ -259,8 +218,7 @@ mod tests
 	}
 
 	#[test]
-	fn shuffle()
-	{
+	fn shuffle() {
 		let vec = Vector::new(1f32, 2f32, 3f32, 4f32);
 
 		assert_eq!(vec.shuffle::<0, 0, 0, 0>(), Vector::new(1f32, 1f32, 1f32, 1f32));
@@ -269,8 +227,7 @@ mod tests
 	}
 
 	#[test]
-	fn shuffle_merge()
-	{
+	fn shuffle_merge() {
 		let vec1 = Vector::new(1f32, 2f32, 3f32, 4f32);
 		let vec2 = Vector::new(4f32, 3f32, 2f32, 1f32);
 
@@ -281,16 +238,14 @@ mod tests
 	}
 
 	#[test]
-	fn abs()
-	{
+	fn abs() {
 		let vec = Vector::new(-1f32, 2f32, -3f32, 4f32);
 
 		assert_eq!(vec.abs(), Vector::new(1f32, 2f32, 3f32, 4f32));
 	}
 
 	#[test]
-	fn horizontal_sum()
-	{
+	fn horizontal_sum() {
 		let vec = Vector::new(-1f32, 2f32, -3f32, 4f32);
 		assert_eq!(vec.hsum(), 2f32);
 
@@ -299,8 +254,7 @@ mod tests
 	}
 
 	#[test]
-	fn length()
-	{
+	fn length() {
 		let vec = Vector::new(1f32, 2f32, 3f32, 4f32);
 		assert_eq!(vec.length_square(), 30f32);
 
@@ -309,8 +263,7 @@ mod tests
 	}
 
 	#[test]
-	fn cross_product()
-	{
+	fn cross_product() {
 		let vec1 = Vector::new(1f32, 0f32, 0f32, 0f32);
 		let vec2 = Vector::new(0f32, 1f32, 0f32, 0f32);
 
@@ -318,8 +271,7 @@ mod tests
 	}
 
 	#[test]
-	fn min_and_max()
-	{
+	fn min_and_max() {
 		let vec1 = Vector::new(1f32, 2f32, 3f32, 4f32);
 		let vec2 = Vector::new(4f32, 3f32, 2f32, 1f32);
 
@@ -328,8 +280,7 @@ mod tests
 	}
 
 	#[test]
-	fn adj_add_and_sub()
-	{
+	fn adj_add_and_sub() {
 		let vec1 = Vector::new(1f32, 2f32, 3f32, 4f32);
 		let vec2 = Vector::new(4f32, 3f32, 2f32, 1f32);
 
@@ -338,8 +289,7 @@ mod tests
 	}
 
 	#[test]
-	fn add_sub()
-	{
+	fn add_sub() {
 		let vec1 = Vector::new(1f32, 2f32, 3f32, 4f32);
 		let vec2 = Vector::new(4f32, 3f32, 2f32, 1f32);
 

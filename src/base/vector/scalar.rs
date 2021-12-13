@@ -6,26 +6,21 @@ use std::{
 	slice::from_raw_parts,
 };
 
-use crate::base::shuffle_args;
-
 #[repr(C)]
 #[derive(Copy, Clone, PartialEq)]
 /// A four-dimensional row vector.
-pub struct Vector
-{
+pub struct Vector {
 	x: f32,
 	y: f32,
 	z: f32,
 	w: f32,
 }
 
-impl Add for Vector
-{
+impl Add for Vector {
 	type Output = Vector;
 
 	#[inline(always)]
-	fn add(self, rhs: Self) -> Self
-	{
+	fn add(self, rhs: Self) -> Self {
 		Self {
 			x: self.x + rhs.x,
 			y: self.y + rhs.y,
@@ -35,11 +30,9 @@ impl Add for Vector
 	}
 }
 
-impl Default for Vector
-{
+impl Default for Vector {
 	#[inline(always)]
-	fn default() -> Self
-	{
+	fn default() -> Self {
 		Self {
 			x: 0f32,
 			y: 0f32,
@@ -49,13 +42,11 @@ impl Default for Vector
 	}
 }
 
-impl Div for Vector
-{
+impl Div for Vector {
 	type Output = Vector;
 
 	#[inline(always)]
-	fn div(self, rhs: Self) -> Self
-	{
+	fn div(self, rhs: Self) -> Self {
 		Self {
 			x: self.x / rhs.x,
 			y: self.y / rhs.y,
@@ -65,13 +56,11 @@ impl Div for Vector
 	}
 }
 
-impl Div<f32> for Vector
-{
+impl Div<f32> for Vector {
 	type Output = Vector;
 
 	#[inline(always)]
-	fn div(self, rhs: f32) -> Self
-	{
+	fn div(self, rhs: f32) -> Self {
 		Self {
 			x: self.x / rhs,
 			y: self.y / rhs,
@@ -81,13 +70,11 @@ impl Div<f32> for Vector
 	}
 }
 
-impl Mul for Vector
-{
+impl Mul for Vector {
 	type Output = Vector;
 
 	#[inline(always)]
-	fn mul(self, rhs: Self) -> Self
-	{
+	fn mul(self, rhs: Self) -> Self {
 		Self {
 			x: self.x * rhs.x,
 			y: self.y * rhs.y,
@@ -97,13 +84,11 @@ impl Mul for Vector
 	}
 }
 
-impl Mul<f32> for Vector
-{
+impl Mul<f32> for Vector {
 	type Output = Vector;
 
 	#[inline(always)]
-	fn mul(self, rhs: f32) -> Self
-	{
+	fn mul(self, rhs: f32) -> Self {
 		Self {
 			x: self.x * rhs,
 			y: self.y * rhs,
@@ -113,13 +98,11 @@ impl Mul<f32> for Vector
 	}
 }
 
-impl Sub for Vector
-{
+impl Sub for Vector {
 	type Output = Vector;
 
 	#[inline(always)]
-	fn sub(self, rhs: Self) -> Self
-	{
+	fn sub(self, rhs: Self) -> Self {
 		Self {
 			x: self.x - rhs.x,
 			y: self.y - rhs.y,
@@ -129,8 +112,7 @@ impl Sub for Vector
 	}
 }
 
-impl Vector
-{
+impl Vector {
 	#[inline(always)]
 	/// Create a [`Vector`] from x, y, z, and w values.
 	pub fn new(x: f32, y: f32, z: f32, w: f32) -> Self { Self { x, y, z, w } }
@@ -169,8 +151,7 @@ impl Vector
 
 	#[inline(always)]
 	/// Shuffles the components of a [`Vector`].
-	pub fn shuffle<const X: u32, const Y: u32, const Z: u32, const W: u32>(self) -> Self
-	{
+	pub fn shuffle<const X: u32, const Y: u32, const Z: u32, const W: u32>(self) -> Self {
 		let data = unsafe { from_raw_parts((&self as *const Vector) as *const f32, 4) };
 
 		Self {
@@ -184,10 +165,7 @@ impl Vector
 	#[inline(always)]
 	/// Shuffles and merges the components of two [`Vector`]s.
 	/// Takes `x` and `y` from `vec1`, and `z` and `w` from `vec2`.
-	pub fn shuffle_merge<const X: u32, const Y: u32, const Z: u32, const W: u32>(vec1: Vector, vec2: Vector) -> Self
-	where
-		[(); shuffle_args(X, Y, Z, W)]: Sized,
-	{
+	pub fn shuffle_merge<const X: u32, const Y: u32, const Z: u32, const W: u32>(vec1: Vector, vec2: Vector) -> Self {
 		let data = unsafe {
 			(
 				from_raw_parts((&vec1 as *const Vector) as *const f32, 4),
@@ -206,16 +184,14 @@ impl Vector
 	#[inline(always)]
 	/// Get an indexed value from the [`Vector`]. This is slow, don't use it unless you have to.
 	/// Panics if idx is not in the range [0, 3].
-	pub fn get(self, idx: u8) -> f32
-	{
+	pub fn get(self, idx: u8) -> f32 {
 		assert!(idx < 4, "Indexed out of Vector bounds");
 		unsafe { from_raw_parts((&self as *const Vector) as *const f32, 4)[idx as usize] }
 	}
 
 	#[inline(always)]
 	/// Get a [`Vector`] containing the absolute values of x, y, z, and w.
-	pub fn abs(self) -> Self
-	{
+	pub fn abs(self) -> Self {
 		Self {
 			x: self.x.abs(),
 			y: self.y.abs(),
@@ -230,8 +206,7 @@ impl Vector
 
 	#[inline(always)]
 	/// Get the component-wise minimums.
-	pub fn min(lhs: Self, rhs: Self) -> Self
-	{
+	pub fn min(lhs: Self, rhs: Self) -> Self {
 		Self {
 			x: f32::min(lhs.x, rhs.x),
 			y: f32::min(lhs.y, rhs.y),
@@ -242,8 +217,7 @@ impl Vector
 
 	#[inline(always)]
 	/// Get the component-wise maximums.
-	pub fn max(lhs: Self, rhs: Self) -> Self
-	{
+	pub fn max(lhs: Self, rhs: Self) -> Self {
 		Self {
 			x: f32::max(lhs.x, rhs.x),
 			y: f32::max(lhs.y, rhs.y),
@@ -257,8 +231,7 @@ impl Vector
 	/// y: `lhs`.z + `lhs`.w.  
 	/// z: `rhs`.x + `rhs`.y.  
 	/// w: `rhs`.z + `rhs`.w.  
-	pub fn adj_add(lhs: Self, rhs: Self) -> Self
-	{
+	pub fn adj_add(lhs: Self, rhs: Self) -> Self {
 		Self {
 			x: lhs.x + lhs.y,
 			y: lhs.z + lhs.w,
@@ -272,8 +245,7 @@ impl Vector
 	/// y: `lhs`.z - `lhs`.w.  
 	/// z: `rhs`.x - `rhs`.y.  
 	/// w: `rhs`.z - `rhs`.w.  
-	pub fn adj_sub(lhs: Self, rhs: Self) -> Self
-	{
+	pub fn adj_sub(lhs: Self, rhs: Self) -> Self {
 		Self {
 			x: lhs.x - lhs.y,
 			y: lhs.z - lhs.w,
@@ -284,8 +256,7 @@ impl Vector
 
 	#[inline(always)]
 	/// Subtract and add alternate elements.
-	pub fn add_sub(lhs: Self, rhs: Self) -> Self
-	{
+	pub fn add_sub(lhs: Self, rhs: Self) -> Self {
 		Self {
 			x: lhs.x - rhs.x,
 			y: lhs.y + rhs.y,

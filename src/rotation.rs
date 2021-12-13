@@ -3,8 +3,7 @@
 use crate::{base::Quaternion, coordinate_system::CoordinateSystem};
 
 /// The order to apply euler rotations in.
-pub enum RotationOrder
-{
+pub enum RotationOrder {
 	/// Pitch, yaw, and then roll.
 	PYR,
 	/// Pitch, roll, yaw.
@@ -20,8 +19,7 @@ pub enum RotationOrder
 }
 
 /// A rotation described by euler angles in radians. Positive angles convey an anti-clockwise rotation.
-pub struct EulerAngles
-{
+pub struct EulerAngles {
 	/// Rotation along the `right` vector while looking along the vector, from the origin.
 	pub pitch: f32,
 	/// Rotation along the `up` vector.
@@ -37,13 +35,11 @@ pub struct EulerAngles
 /// A rotation in 3D space.
 pub struct Rotation(pub(crate) Quaternion);
 
-impl Rotation
-{
+impl Rotation {
 	#[inline(always)]
 	/// Create a [`Rotation`] from [`EulerAngles`].  
 	/// `system` is the [`CoordinateSystem`] to use to decipher what `angles` mean.
-	pub fn euler(angles: EulerAngles, system: CoordinateSystem) -> Self
-	{
+	pub fn euler(angles: EulerAngles, system: CoordinateSystem) -> Self {
 		let sin_pitch = (angles.pitch / 2f32).sin();
 		let cos_pitch = (angles.pitch / 2f32).cos();
 		let sin_yaw = (angles.yaw / 2f32).sin();
@@ -64,8 +60,7 @@ impl Rotation
 
 		use RotationOrder::*;
 
-		Self(match angles.order
-		{
+		Self(match angles.order {
 			PYR => pitch * yaw * roll,
 			PRY => pitch * roll * yaw,
 			RPY => roll * pitch * yaw,

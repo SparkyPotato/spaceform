@@ -11,16 +11,13 @@ use crate::base::Vector;
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq)]
 /// A 4x4 matrix.
-pub struct Matrix
-{
+pub struct Matrix {
 	rows: [Vector; 4],
 }
 
-impl Debug for Matrix
-{
+impl Debug for Matrix {
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter<'_>) -> Result
-	{
+	fn fmt(&self, f: &mut Formatter<'_>) -> Result {
 		write!(
 			f,
 			"{}, {}, {}, {}",
@@ -32,17 +29,14 @@ impl Debug for Matrix
 	}
 }
 
-impl Default for Matrix
-{
+impl Default for Matrix {
 	#[inline(always)]
 	fn default() -> Self { Matrix::identity() }
 }
 
-impl Display for Matrix
-{
+impl Display for Matrix {
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter<'_>) -> Result
-	{
+	fn fmt(&self, f: &mut Formatter<'_>) -> Result {
 		write!(
 			f,
 			"{}, {}, {}, {}",
@@ -54,16 +48,13 @@ impl Display for Matrix
 	}
 }
 
-impl Mul for Matrix
-{
+impl Mul for Matrix {
 	type Output = Self;
 
 	#[inline(always)]
-	fn mul(self, rhs: Self) -> Self
-	{
+	fn mul(self, rhs: Self) -> Self {
 		let mut rows = [Vector::default(); 4];
-		for i in 0..4
-		{
+		for i in 0..4 {
 			rows[i] = rhs.rows[0] * self.rows[i].shuffle::<0, 0, 0, 0>()
 				+ rhs.rows[1] * self.rows[i].shuffle::<1, 1, 1, 1>()
 				+ rhs.rows[2] * self.rows[i].shuffle::<2, 2, 2, 2>()
@@ -74,18 +65,15 @@ impl Mul for Matrix
 	}
 }
 
-impl MulAssign for Matrix
-{
+impl MulAssign for Matrix {
 	#[inline(always)]
 	fn mul_assign(&mut self, rhs: Self) { *self = *self * rhs; }
 }
 
-impl Matrix
-{
+impl Matrix {
 	#[inline(always)]
 	/// Create a [`Matrix`] from 16 elements.
-	pub fn rows(rows: [[f32; 4]; 4]) -> Self
-	{
+	pub fn rows(rows: [[f32; 4]; 4]) -> Self {
 		Self {
 			rows: [
 				Vector::new(rows[0][0], rows[0][1], rows[0][2], rows[0][3]),
@@ -102,8 +90,7 @@ impl Matrix
 
 	#[inline(always)]
 	/// Create an identity [`Matrix`].
-	pub fn identity() -> Self
-	{
+	pub fn identity() -> Self {
 		Self {
 			rows: [
 				Vector::new(1f32, 0f32, 0f32, 0f32),
@@ -116,8 +103,7 @@ impl Matrix
 
 	#[inline(always)]
 	/// Calculate the transpose of the [`Matrix`].
-	pub fn transpose(&self) -> Matrix
-	{
+	pub fn transpose(&self) -> Matrix {
 		let temp = [
 			Vector::shuffle_merge::<0, 1, 0, 1>(self.rows[0], self.rows[1]),
 			Vector::shuffle_merge::<2, 3, 2, 3>(self.rows[0], self.rows[1]),
@@ -138,8 +124,7 @@ impl Matrix
 	#[inline(always)]
 	/// Calculate the determinant of the [`Matrix`].
 	/// Is quite slow, don't use it much.
-	pub fn det(&self) -> f32
-	{
+	pub fn det(&self) -> f32 {
 		// https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
 
 		let a = Vector::shuffle_merge::<0, 1, 0, 1>(self.rows[0], self.rows[1]);
@@ -168,8 +153,7 @@ impl Matrix
 	#[inline(always)]
 	/// Calculate the inverse of the [`Matrix`].
 	/// Is quite slow, don't use it much.
-	pub fn inverse(&self) -> Matrix
-	{
+	pub fn inverse(&self) -> Matrix {
 		// https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
 
 		let a = Vector::shuffle_merge::<0, 1, 0, 1>(self.rows[0], self.rows[1]);
@@ -224,8 +208,7 @@ impl Matrix
 	#[inline(always)]
 	/// Get a column of the [`Matrix`].
 	/// Panics if idx is not in the range [0, 3].
-	pub fn get_column(&self, idx: u8) -> Vector
-	{
+	pub fn get_column(&self, idx: u8) -> Vector {
 		Vector::new(
 			self.rows[0].get(idx),
 			self.rows[1].get(idx),
@@ -238,31 +221,26 @@ impl Matrix
 // https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
 
 #[inline(always)]
-fn mat2_mul(vec1: Vector, vec2: Vector) -> Vector
-{
+fn mat2_mul(vec1: Vector, vec2: Vector) -> Vector {
 	vec1 * vec2.shuffle::<0, 0, 3, 3>() + vec1.shuffle::<2, 3, 0, 1>() + vec2.shuffle::<1, 1, 2, 2>()
 }
 
 #[inline(always)]
-fn mat2_adj_mul(vec1: Vector, vec2: Vector) -> Vector
-{
+fn mat2_adj_mul(vec1: Vector, vec2: Vector) -> Vector {
 	vec1.shuffle::<3, 0, 3, 0>() * vec2 - vec1.shuffle::<2, 1, 2, 1>() * vec2.shuffle::<1, 0, 3, 2>()
 }
 
 #[inline(always)]
-fn mat2_mul_adj(vec1: Vector, vec2: Vector) -> Vector
-{
+fn mat2_mul_adj(vec1: Vector, vec2: Vector) -> Vector {
 	vec1 * vec2.shuffle::<3, 3, 0, 0>() - vec1.shuffle::<2, 3, 0, 1>() * vec2.shuffle::<1, 1, 2, 2>()
 }
 
-mod tests
-{
+mod tests {
 	#[allow(unused_imports)] // TODO: Remove when rustc is fixed.
 	use super::*;
 
 	#[test]
-	fn multiply()
-	{
+	fn multiply() {
 		let mat = Matrix::rows([
 			[1f32, 2f32, 3f32, 4f32],
 			[5f32, 6f32, 7f32, 8f32],
@@ -282,8 +260,7 @@ mod tests
 	}
 
 	#[test]
-	fn transpose()
-	{
+	fn transpose() {
 		assert_eq!(
 			Matrix::rows([
 				[1f32, 2f32, 3f32, 4f32],
@@ -302,8 +279,7 @@ mod tests
 	}
 
 	#[test]
-	fn inverse()
-	{
+	fn inverse() {
 		let mat = Matrix::rows([
 			[2f32, 0f32, 0f32, 0f32],
 			[0f32, 2f32, 0f32, 0f32],

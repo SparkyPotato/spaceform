@@ -164,11 +164,13 @@ impl Vector {
 		[(); shuffle_mask(W, Z, Y, X) as usize]:,
 		[(); X as usize]:,
 		[(); Y as usize]:,
-		[(); Z as usize]:,
-		[(); W as usize]:,
+		[(); Z as usize + 4]:,
+		[(); W as usize + 4]:,
 	{
 		Self {
-			data: u32x4_shuffle::<{ X as usize }, { Y as usize }, { Z as usize }, { W as usize }>(vec1.data, vec2.data),
+			data: u32x4_shuffle::<{ X as usize }, { Y as usize }, { Z as usize + 4 }, { W as usize + 4 }>(
+				vec1.data, vec2.data,
+			),
 		}
 	}
 
@@ -176,16 +178,16 @@ impl Vector {
 	/// Get a [`Vector`] containing the absolute values of x, y, z, and w.
 	pub fn abs(self) -> Self {
 		Self {
-			data: unsafe { v128_andnot(SIGNBITS.vec, self.data) },
+			data: unsafe { v128_andnot(self.data, SIGNBITS.vec) },
 		}
 	}
 
 	#[inline(always)]
 	/// Get the four-dimensional horizontal-sum of a [`Vector`].
 	pub fn hsum(self) -> f32 {
-		let shuf = u32x4_shuffle::<2, 3, 0, 1>(self.data, self.data);
+		let shuf = u32x4_shuffle::<1, 0, 3, 2>(self.data, self.data);
 		let sum = f32x4_add(self.data, shuf);
-		let shuf = u32x4_shuffle::<2, 3, 2, 3>(sum, shuf);
+		let shuf = u32x4_shuffle::<2, 1, 2, 1>(sum, sum);
 		let sum = f32x4_add(sum, shuf);
 		f32x4_extract_lane::<0>(sum)
 	}
@@ -212,8 +214,8 @@ impl Vector {
 	/// z: `rhs`.x + `rhs`.y.
 	/// w: `rhs`.z + `rhs`.w.
 	pub fn adj_add(lhs: Self, rhs: Self) -> Self {
-		let a = u32x4_shuffle::<0, 3, 0, 3>(lhs.data, rhs.data);
-		let b = u32x4_shuffle::<2, 4, 2, 4>(lhs.data, rhs.data);
+		let a = u32x4_shuffle::<0, 2, 0, 2>(lhs.data, rhs.data);
+		let b = u32x4_shuffle::<1, 3, 1, 3>(lhs.data, rhs.data);
 		Self { data: f32x4_add(a, b) }
 	}
 

@@ -260,8 +260,8 @@ mod tests {
 		let vec = Vector::new(-1f32, 2f32, -3f32, 4f32);
 		assert_eq!(vec.hsum(), 2f32);
 
-		let vec = Vector::new(1f32, 2f32, 3f32, 0f32);
-		assert_eq!(vec.hsum(), 6f32);
+		let vec = Vector::new(1f32, 2f32, 3f32, 4f32);
+		assert_eq!(vec.hsum(), 10f32);
 	}
 
 	#[test]

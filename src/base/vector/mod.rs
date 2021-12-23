@@ -10,9 +10,20 @@ mod x86;
 #[cfg(all(feature = "simd", any(target_arch = "x86", target_arch = "x86_64")))]
 pub use x86::*;
 
-#[cfg(not(all(feature = "simd", any(target_arch = "x86", target_arch = "x86_64"))))]
+#[cfg(all(feature = "simd", target_arch = "wasm32"))]
+mod wasm;
+#[cfg(all(feature = "simd", target_arch = "wasm32"))]
+pub use wasm::*;
+
+#[cfg(not(all(
+	feature = "simd",
+	any(target_arch = "x86", target_arch = "x86_64", target_arch = "wasm32")
+)))]
 mod scalar;
-#[cfg(not(all(feature = "simd", any(target_arch = "x86", target_arch = "x86_64"))))]
+#[cfg(not(all(
+	feature = "simd",
+	any(target_arch = "x86", target_arch = "x86_64", target_arch = "wasm32")
+)))]
 pub use scalar::*;
 
 use crate::base::Matrix;

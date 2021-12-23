@@ -109,6 +109,9 @@ impl Point {
 	where
 		Check<{ is_shuffle_arg(X, Y, Z, 3) }>: True,
 		[(); shuffle_mask(3, Z, Y, X) as usize]:,
+		[(); X as usize]:,
+		[(); Y as usize]:,
+		[(); Z as usize]:,
 	{
 		Self(self.0.shuffle::<X, Y, Z, 3>())
 	}

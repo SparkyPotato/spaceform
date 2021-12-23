@@ -1,6 +1,6 @@
 [package]
 name = "spaceform"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Shaye Garg <shaye.garg@gmail.com>"]
 license = "Apache-2.0"
 description = "A cross-platform SIMD-accelerated maths library for 3D graphics"

@@ -2,7 +2,6 @@
 #![allow(incomplete_features)] // TODO: Remove once generic_const_exprs is complete.
 // Features
 #![feature(generic_const_exprs)]
-#![feature(stdarch)]
 // Rustdoc
 #![warn(missing_docs)]
 // Clippy

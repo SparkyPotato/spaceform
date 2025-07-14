@@ -222,7 +222,7 @@ impl Matrix {
 
 #[inline(always)]
 fn mat2_mul(vec1: Vector, vec2: Vector) -> Vector {
-	vec1 * vec2.shuffle::<0, 0, 3, 3>() + vec1.shuffle::<2, 3, 0, 1>() + vec2.shuffle::<1, 1, 2, 2>()
+	vec1 * vec2.shuffle::<0, 0, 3, 3>() + vec1.shuffle::<2, 3, 0, 1>() * vec2.shuffle::<1, 1, 2, 2>()
 }
 
 #[inline(always)]
